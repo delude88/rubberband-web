@@ -1,7 +1,8 @@
 <html>
 <body>
 
-<button id="start" onclick="onClick()">Start</button>
+<button id="osc" onclick="osc()">Use Oscillator</button>
+<button id="mic" onclick="mic()">Use Mic</button>
 
 <br/>
 
@@ -16,23 +17,51 @@
        max="1.6" value="1.0" disabled="disabled"/>
 
 <script>
+    var audioContext;
     var processor;
 
-    async function onClick() {
-        const audioContext = new AudioContext();
+    async function start() {
+        audioContext = new AudioContext();
         await audioContext.resume();
-        document.getElementById("start").remove();
+        document.getElementById("osc").remove();
+        document.getElementById("mic").remove();
         document.getElementById("pitch").removeAttribute("disabled");
         document.getElementById("tempo").removeAttribute("disabled");
 
         // Load rubberband processor
         await audioContext.audioWorklet.addModule("../dist/rubberband-processor.js");
         processor = new AudioWorkletNode(audioContext, "rubberband-processor");
+    }
+
+    async function osc() {
+        await start();
 
         // Create source (oscillator)
         const source = new OscillatorNode(audioContext, {
             frequency: 380,
             type: 'sine',
+        });
+
+        // Connect nodes
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        // Start everything
+        source.start();
+    }
+
+    async function mic() {
+        await start();
+
+        // Create source (oscillator)
+        const stream = await navigator.mediaDevices
+            .getUserMedia({
+                audio: true,
+                video: false,
+            });
+
+        const source = new MediaStreamAudioSourceNode(audioContext, {
+            mediaStream: stream,
         });
 
         // Connect nodes

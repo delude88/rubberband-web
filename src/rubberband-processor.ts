@@ -6,7 +6,7 @@ class RubberbandProcessor extends AudioWorkletProcessor {
 
     constructor() {
         super();
-        this.api = new PitchShifter(sampleRate, 1)
+        this.api = new PitchShifter(sampleRate, 2)
         console.info("Rubberband engine version", this.api.getVersion())
         this.port.onmessage = (e) => {
             const data = JSON.parse(e.data)

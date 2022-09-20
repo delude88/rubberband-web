@@ -10,7 +10,10 @@ if [ ! -d lib/rubberband ]; then
 fi
 
 # Prepare environment
-export CFLAGS="-Ilib/rubberband/rubberband -O3 -Oz -flto"
+#export OPTIMIZATION="-O3 -Oz"
+#export OPTIMIZATION="-O3 -msimd128 -flto"
+export OPTIMIZATION="-O3 -msimd128 -flto -fno-rtti"
+export CFLAGS="-Ilib/rubberband/rubberband ${OPTIMIZATION}"
 export CXXFLAGS="${CFLAGS}"
 export LDFLAGS="${CFLAGS}"
 
@@ -24,7 +27,7 @@ emcc ${CXXFLAGS} -c src/PitchShifter.cpp -o lib/pitchshifter.o
 
 # Compile rubberband.cc
 echo "Compile rubberband.cc"
-emcc ${CXXFLAGS} -c src/rubberband.cc -o lib/rubberband.o
+emcc ${CXXFLAGS} -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0 -c src/rubberband.cc -o lib/rubberband.o
 
 # Link both
 echo "Linking"
