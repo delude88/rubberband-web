@@ -23,10 +23,9 @@ class PitchShifter {
 
   size_t getSamplesAvailable();
 
-  //void push(const float *const *input, size_t length);
-  void push(float *input, size_t length);
+  void push(uintptr_t input_ptr, size_t length);
 
-  void pull(float **output, size_t length);
+  void pull(uintptr_t output_ptr, size_t length);
 
  private:
   void process();

@@ -15,16 +15,19 @@ PitchShifter::PitchShifter(size_t sampleRate, size_t channels) :
     ) {
   delay_buffer = new RubberBand::RingBuffer<float> *[channels];
   output_buffer = new RubberBand::RingBuffer<float> *[channels];
+  scratch = new float *[channels];
   auto buffer_size = kBlockSize + kReserve + 8192;
   for (size_t channel = 0; channel < channels; ++channel) {
     delay_buffer[channel] = new RubberBand::RingBuffer<float>(buffer_size);
     output_buffer[channel] = new RubberBand::RingBuffer<float>(buffer_size);
+    scratch[channel] = new float[buffer_size];
   }
 }
 
 PitchShifter::~PitchShifter() {
   delete[] delay_buffer;
   delete[] output_buffer;
+  delete[] scratch;
 }
 
 int PitchShifter::getVersion() {
@@ -49,17 +52,29 @@ size_t PitchShifter::getSamplesAvailable() {
   return output_buffer[0]->getReadSpace();
 }
 
-void PitchShifter::push(float *input, size_t length) {
+void PitchShifter::push(uintptr_t input_ptr, size_t length) {
+  auto *input = reinterpret_cast<float *>(input_ptr);
+  auto **input_arr = new float *[channels];
+  for (size_t channel = 0; channel < channels; ++channel) {
+    float *source = input + channel * length;
+    input_arr[channel] = source;
+  }
+  //std::cout << "pushed " << length << " samples on " << channels << " channels" << std::endl;
+  stretcher->process(input_arr, length, false);
+  process();
 }
 
-void PitchShifter::pull(float **output, size_t length) {
+void PitchShifter::pull(uintptr_t output_ptr, size_t length) {
+  float *output = reinterpret_cast<float *>(output_ptr);
   for (size_t channel = 0; channel < channels; ++channel) {
     size_t available = output_buffer[channel]->getReadSpace();
+    float *destination = output + channel * length;
     output_buffer[channel]->read(
-        &(output[channel][0]),
+        destination,
         std::min<size_t>(available, length)
     );
   }
+  //std::cout << "pulled " << length << std::endl;
 }
 
 void PitchShifter::process() {
@@ -71,7 +86,6 @@ void PitchShifter::process() {
       std::cout << "BUFFER OVERRUN" << std::endl;
     }
     size_t actual = stretcher->retrieve(scratch, available);
-
     for (size_t channel = 0; channel < channels; ++channel) {
       output_buffer[channel]->write(scratch[channel], actual);
     }

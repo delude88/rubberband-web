@@ -24,10 +24,11 @@ emcc ${CXXFLAGS} -c src/PitchShifter.cpp -o lib/pitchshifter.o
 
 # Compile rubberband.cc
 echo "Compile rubberband.cc"
-emcc ${CXXFLAGS} -c wasm/rubberband.cc -o lib/rubberband.o
+emcc ${CXXFLAGS} -c src/rubberband.cc -o lib/rubberband.o
 
 # Link both
 echo "Linking"
+mkdir -p dist
 emcc ${LDFLAGS} \
       --bind \
       -O1 \

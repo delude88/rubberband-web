@@ -1,16 +1,33 @@
 <html>
 <body>
 
-<button onclick="onClick()">Click me</button>
+<button id="start" onclick="onClick()">Start</button>
+
+<br/>
+
+<label for="pitch">Pitch</label>
+<input id="pitch" onchange="handlePitch(this.value)" type="range" min="0.4" step="0.2"
+       max="1.6" value="1.0" disabled="disabled"/>
+
+<br/>
+
+<label for="tempo">Tempo</label>
+<input id="tempo" onchange="handleTempo(this.value)" type="range" min="0.4" step="0.2"
+       max="1.6" value="1.0" disabled="disabled"/>
 
 <script>
+    var processor;
+
     async function onClick() {
         const audioContext = new AudioContext();
         await audioContext.resume();
+        document.getElementById("start").remove();
+        document.getElementById("pitch").removeAttribute("disabled");
+        document.getElementById("tempo").removeAttribute("disabled");
 
         // Load rubberband processor
         await audioContext.audioWorklet.addModule("../dist/rubberband-processor.js");
-        const processor = new AudioWorkletNode(audioContext, "rubberband-processor");
+        processor = new AudioWorkletNode(audioContext, "rubberband-processor");
 
         // Create source (oscillator)
         const source = new OscillatorNode(audioContext, {
@@ -24,6 +41,18 @@
 
         // Start everything
         source.start();
+    }
+
+    function handlePitch(value) {
+        if (processor) {
+            processor.port.postMessage(JSON.stringify(["pitch", value]));
+        }
+    }
+
+    function handleTempo(value) {
+        if (processor) {
+            processor.port.postMessage(JSON.stringify(["tempo", value]));
+        }
     }
 </script>
 </body>

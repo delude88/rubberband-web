@@ -6,7 +6,7 @@ add_compile_options(-ffast-math -O3 -ftree-vectorize)
 set(CMAKE_CXX_STANDARD 11)
 
 add_executable(rubberband_web
-        src/main.cpp
+        src/demo.cpp
         src/PitchShifter.cpp
         src/PitchShifter.h)
 
