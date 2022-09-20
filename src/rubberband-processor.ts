@@ -16,10 +16,12 @@ class RubberbandProcessor extends AudioWorkletProcessor {
             switch (event) {
                 case "pitch": {
                     this.api.setPitch(payload)
+                    console.log("samplesRequired", this.api.getSamplesRequired())
                     break;
                 }
                 case "tempo": {
                     this.api.setTempo(payload)
+                    console.log("samplesRequired", this.api.getSamplesRequired())
                     break;
                 }
                 case "close": {

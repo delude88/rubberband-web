@@ -15,8 +15,12 @@ class PitchShifter {
         this.instance.setPitch(pitch)
     }
 
-    public getVersion() {
+    public getVersion(): number {
        return this.instance.getVersion()
+    }
+
+    public getSamplesRequired(): number {
+        return this.instance.getSamplesRequired()
     }
 }
 export {PitchShifter}
