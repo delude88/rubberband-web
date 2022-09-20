@@ -1,0 +1,30 @@
+<html>
+<body>
+
+<button onclick="onClick()">Click me</button>
+
+<script>
+    async function onClick() {
+        const audioContext = new AudioContext();
+        await audioContext.resume();
+
+        // Load rubberband processor
+        await audioContext.audioWorklet.addModule("../dist/rubberband-processor.js");
+        const processor = new AudioWorkletNode(audioContext, "rubberband-processor");
+
+        // Create source (oscillator)
+        const source = new OscillatorNode(audioContext, {
+            frequency: 380,
+            type: 'sine',
+        });
+
+        // Connect nodes
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        // Start everything
+        source.start();
+    }
+</script>
+</body>
+</html>

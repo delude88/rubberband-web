@@ -4,17 +4,32 @@
 using namespace emscripten;
 
 EMSCRIPTEN_BINDINGS(CLASS_Pitchshifter) {
-  class_<PitchShifter>("PitchShifter")
-      .constructor<size_t, size_t>()
-      .function("getVersion",
-                &PitchShifter::getVersion)
+    class_<PitchShifter>("PitchShifter")
 
-      .function("getSamplesRequired",
-                &PitchShifter::getSamplesRequired)
+        .constructor<size_t, size_t>()
 
-      .function("setPitch",
-                &PitchShifter::setPitch)
+        .function("getVersion",
+                  &PitchShifter::getVersion)
 
-      .function("setTempo",
-                &PitchShifter::setTempo);
+        .function("getSamplesRequired",
+                  &PitchShifter::getSamplesRequired)
+
+        .function("setPitch",
+                  &PitchShifter::setPitch)
+
+        .function("setTempo",
+                  &PitchShifter::setTempo)
+
+        .function("pull",
+                  &PitchShifter::pull,
+                  allow_raw_pointers())
+
+        .function("push",
+                  &PitchShifter::push,
+                  allow_raw_pointers())
+
+        .function("getSamplesAvailable",
+                  &PitchShifter::getSamplesAvailable);
+
+    register_vector<int>("vector<int>");
 }

@@ -45,4 +45,5 @@ emcc ${LDFLAGS} \
       -o dist/rubberband.wasmmodule.js \
       --post-js ./em-es6-module.js
 
-cp dist/rubberband.wasmmodule.js src/rubberband.wasmmodule.js
+echo "Copying"
+cp -fr dist/rubberband.wasmmodule.js src/rubberband.wasmmodule.js

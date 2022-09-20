@@ -36,7 +36,17 @@ class RubberbandProcessor extends AudioWorkletProcessor {
         this.port.onmessage = undefined
     }
 
-    process(_inputs: Float32Array[][], _outputs: Float32Array[][]): boolean {
+    process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+        if (inputs?.length > 0) {
+            this.api.push(inputs[0])
+        }
+
+        if (outputs?.length > 0) {
+            const outputLength = outputs[0][0].length
+            if (this.api.getSamplesRequired() > outputLength) {
+                this.api.pull(outputs[0])
+            }
+        }
         return this.running;
     }
 }
