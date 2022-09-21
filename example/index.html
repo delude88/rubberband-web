@@ -1,9 +1,13 @@
 <html>
 <body>
 
-<button id="osc" onclick="osc()">Use Oscillator</button>
-<button id="mic" onclick="mic()">Use Mic</button>
-<button id="stop" onclick="stop()" disabled="disabled">Stop</button>
+<h1>Rubberband-web</h1>
+
+<h2>Realtime</h2>
+
+<button id="osc" onclick="startOscillator()">Use Oscillator</button>
+<button id="mic" onclick="startMic()">Use Mic</button>
+<button id="stop" onclick="stopEngine()" disabled="disabled">Stop</button>
 
 <br/>
 
@@ -19,6 +23,10 @@
 
 <label for="quality">High quality</label>
 <input id="quality" onchange="handleQuality(this.checked)" type="checkbox" disabled="disabled"/>
+
+<h2>File-based</h2>
+<label>Audio file: <input type="file" id="file" onchange="onFile(this)" accept="audio/*"/></label>
+<button id="play" disabled="disabled" onclick="playFile()">play</button>
 
 <script src="script.js"></script>
 </body>
