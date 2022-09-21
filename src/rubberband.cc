@@ -6,19 +6,19 @@ using namespace emscripten;
 EMSCRIPTEN_BINDINGS(CLASS_Pitchshifter) {
     class_<PitchShifter>("PitchShifter")
 
-        .constructor<size_t, size_t>()
+        .constructor<size_t, size_t, bool>()
 
         .function("getVersion",
                   &PitchShifter::getVersion)
-
-        .function("getSamplesRequired",
-                  &PitchShifter::getSamplesRequired)
 
         .function("setPitch",
                   &PitchShifter::setPitch)
 
         .function("setTempo",
                   &PitchShifter::setTempo)
+
+        .function("setFormantScale",
+                  &PitchShifter::setFormantScale)
 
         .function("pull",
                   &PitchShifter::pull,
@@ -30,6 +30,4 @@ EMSCRIPTEN_BINDINGS(CLASS_Pitchshifter) {
 
         .function("getSamplesAvailable",
                   &PitchShifter::getSamplesAvailable);
-
-    register_vector<int>("vector<int>");
 }

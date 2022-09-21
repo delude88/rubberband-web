@@ -10,7 +10,7 @@
 
 class PitchShifter {
  public:
-  PitchShifter(size_t sampleRate, size_t channels);
+  PitchShifter(size_t sampleRate, size_t channel_count, bool high_quality = false);
   ~PitchShifter();
 
   int getVersion();
@@ -19,26 +19,35 @@ class PitchShifter {
 
   void setPitch(double tempo);
 
-  size_t getSamplesRequired();
+  void setFormantScale(double scale);
 
-  size_t getSamplesAvailable();
+  __attribute__((unused)) size_t getSamplesAvailable();
 
-  void push(uintptr_t input_ptr, size_t length);
+  void push(uintptr_t input_ptr, size_t sample_size);
 
-  void pull(uintptr_t output_ptr, size_t length);
+  int getLatency();
+
+  __attribute__((unused)) void pull(uintptr_t output_ptr, size_t sample_size);
 
  private:
-  void process();
+  void updateRatio();
 
-  RubberBand::RubberBandStretcher *stretcher;
-  RubberBand::RingBuffer<float> **output_buffer;
-  RubberBand::RingBuffer<float> **delay_buffer;
+  void fetchProcessed();
 
-  size_t channels;
-  float **scratch;
+  RubberBand::RubberBandStretcher *stretcher_;
+  RubberBand::RingBuffer<float> **output_buffer_;
 
-  const size_t kBlockSize = 1024;
-  const size_t kReserve = 8192;
+  size_t latency_;
+
+  size_t start_pad_samples_;
+
+  size_t start_delay_samples_;
+
+  size_t channel_count_;
+  float **scratch_;
+
+  const size_t kBlockSize_ = 1024;
+  const size_t kReserve_ = 8192;
 };
 
 #endif //RUBBERBAND_WEB_SRC_PITCHSHIFTER_H_

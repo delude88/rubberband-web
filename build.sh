@@ -1,4 +1,5 @@
 #!/bin/sh
+
 export RUBBERBAND_VERSION="3.0.0"
 
 # Download and extract rubberband

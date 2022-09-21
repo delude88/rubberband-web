@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
-  "license": "GPL2",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "dev": "tsc --watch",
     "build": "./build.sh && tsc"

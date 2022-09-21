@@ -3,41 +3,70 @@
 
 <button id="osc" onclick="osc()">Use Oscillator</button>
 <button id="mic" onclick="mic()">Use Mic</button>
+<button id="stop" onclick="stop()" disabled="disabled">Stop</button>
 
 <br/>
 
 <label for="pitch">Pitch</label>
-<input id="pitch" onchange="handlePitch(this.value)" type="range" min="0.4" step="0.2"
+<input id="pitch" onchange="handlePitch(this.value)" type="range" min="0.4" step="0.01"
        max="1.6" value="1.0" disabled="disabled"/>
 
 <br/>
 
 <label for="tempo">Tempo</label>
-<input id="tempo" onchange="handleTempo(this.value)" type="range" min="0.4" step="0.2"
+<input id="tempo" onchange="handleTempo(this.value)" type="range" min="0.4" step="0.01"
        max="1.6" value="1.0" disabled="disabled"/>
+
+<label for="quality">High quality</label>
+<input id="quality" onchange="handleQuality(this.checked)" type="checkbox" disabled="disabled"/>
+
 
 <script>
     var audioContext;
+    var source;
     var processor;
 
     async function start() {
         audioContext = new AudioContext();
         await audioContext.resume();
-        document.getElementById("osc").remove();
-        document.getElementById("mic").remove();
+        document.getElementById("osc").setAttribute("disabled", "disabled");
+        document.getElementById("mic").setAttribute("disabled", "disabled");
         document.getElementById("pitch").removeAttribute("disabled");
         document.getElementById("tempo").removeAttribute("disabled");
+        document.getElementById("quality").removeAttribute("disabled");
+        document.getElementById("stop").removeAttribute("disabled");
 
         // Load rubberband processor
         await audioContext.audioWorklet.addModule("../dist/rubberband-processor.js");
         processor = new AudioWorkletNode(audioContext, "rubberband-processor");
     }
 
+    async function stop() {
+        if(processor && audioContext) {
+            processor.disconnect(audioContext.destination);
+        }
+        if(source && processor) {
+            source.disconnect(processor);
+        }
+        if (processor) {
+            processor.port.postMessage(JSON.stringify(["close"]));
+        }
+        if (audioContext) {
+            audioContext.close();
+        }
+        document.getElementById("osc").removeAttribute("disabled");
+        document.getElementById("mic").removeAttribute("disabled");
+        document.getElementById("pitch").setAttribute("disabled", "disabled");
+        document.getElementById("tempo").setAttribute("disabled", "disabled");
+        document.getElementById("quality").setAttribute("disabled", "disabled");
+        document.getElementById("stop").setAttribute("disabled", "disabled");
+    }
+
     async function osc() {
         await start();
 
         // Create source (oscillator)
-        const source = new OscillatorNode(audioContext, {
+        source = new OscillatorNode(audioContext, {
             frequency: 380,
             type: 'sine',
         });
@@ -60,16 +89,13 @@
                 video: false,
             });
 
-        const source = new MediaStreamAudioSourceNode(audioContext, {
+        source = new MediaStreamAudioSourceNode(audioContext, {
             mediaStream: stream,
         });
 
         // Connect nodes
         source.connect(processor);
         processor.connect(audioContext.destination);
-
-        // Start everything
-        source.start();
     }
 
     function handlePitch(value) {
@@ -81,6 +107,12 @@
     function handleTempo(value) {
         if (processor) {
             processor.port.postMessage(JSON.stringify(["tempo", value]));
+        }
+    }
+
+    function handleQuality(value) {
+        if (processor) {
+            processor.port.postMessage(JSON.stringify(["quality", value]));
         }
     }
 </script>
