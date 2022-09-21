@@ -7,9 +7,10 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "./build.sh && tsc",
+    "build": "npm run build:wasm && npm run build:ts && npm run build:example",
+    "build:wasm": "./build.sh",
+    "build:ts": "tsc",
     "build:example": "tsc --project tsconfig.example.json"
-
   },
   "devDependencies": {
     "@types/audioworklet": "^0.0.33",
