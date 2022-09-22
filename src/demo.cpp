@@ -1,9 +1,9 @@
 #include <iostream>
-#include "PitchShifter.h"
+#include "cpp/RealtimeRubberband.h"
 
 int main() {
-  std::cout << "Hello" << std::endl;
-  auto *pitchshifter = new PitchShifter(44100, 2);
+  std::cout << "Playground" << std::endl;
+  auto *pitchshifter = new RealtimeRubberband(44100, 2);
   std::cout << pitchshifter->getVersion() << std::endl;
   std::cout << pitchshifter->getSamplesRequired() << std::endl;
   pitchshifter->setPitch(0.5);

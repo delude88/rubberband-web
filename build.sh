@@ -4,6 +4,7 @@ export RUBBERBAND_VERSION="3.0.0"
 
 # Download and extract rubberband
 if [ ! -d lib/rubberband ]; then
+  echo "(0/4) Preparing build by fetching rubberband"
   mkdir -p lib
   curl -o lib/rubberband.tar.bz2 https://breakfastquay.com/files/releases/rubberband-${RUBBERBAND_VERSION}.tar.bz2
   tar xmf lib/rubberband.tar.bz2 -C lib
@@ -11,27 +12,26 @@ if [ ! -d lib/rubberband ]; then
 fi
 
 # Prepare environment
-#export OPTIMIZATION="-O3 -Oz"
-#export OPTIMIZATION="-O3 -msimd128 -flto"
 export OPTIMIZATION="-O3 -msimd128 -flto -fno-rtti"
 export CFLAGS="-Ilib/rubberband/rubberband ${OPTIMIZATION}"
 export CXXFLAGS="${CFLAGS}"
 export LDFLAGS="${CFLAGS}"
 
 # Compile RubberBandSingle as lib
-echo "Compiling RubberBandSingle as lib"
+echo "(1/4) Compiling rubberband library"
 emcc ${CXXFLAGS} -c lib/rubberband/single/RubberBandSingle.cpp -o lib/librubberband.o
 
 # Compile PitchShifter.cpp
-echo "Compile PitchShifter.cpp"
-emcc ${CXXFLAGS} -c src/PitchShifter.cpp -o lib/pitchshifter.o
+echo "(2/4) Compiling classes"
+emcc ${CXXFLAGS} -c src/cpp/OfflineRubberband.cpp -o lib/offlinerubberband.o
+emcc ${CXXFLAGS} -c src/cpp/RealtimeRubberband.cpp -o lib/realtimerubberband.o
 
 # Compile rubberband.cc
-echo "Compile rubberband.cc"
-emcc ${CXXFLAGS} -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0 -c src/rubberband.cc -o lib/rubberband.o
+echo "(3/4) Compiling WASM interface"
+emcc ${CXXFLAGS} -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0 -c src/wasm/rubberband.cc -o lib/rubberband.o
 
 # Link both
-echo "Linking"
+echo "(4/4) Linking everything into an beautiful WASM module"
 mkdir -p dist
 emcc ${LDFLAGS} \
       --bind \
@@ -45,10 +45,8 @@ emcc ${LDFLAGS} \
       -s ASSERTIONS=0 \
       -s SINGLE_FILE=1 \
       lib/librubberband.o \
+      lib/offlinerubberband.o \
+      lib/realtimerubberband.o \
       lib/rubberband.o \
-      lib/pitchshifter.o \
-      -o dist/rubberband.wasmmodule.js \
+      -o src/audioworklet/rubberband.wasmmodule.js \
       --post-js ./em-es6-module.js
-
-echo "Copying"
-cp -fr dist/rubberband.wasmmodule.js src/rubberband.wasmmodule.js

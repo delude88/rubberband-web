@@ -2,7 +2,7 @@
 // Created by Tobias Hegemann on 20.09.22.
 //
 
-#include "PitchShifter.h"
+#include "RealtimeRubberband.h"
 
 #include <algorithm>
 
@@ -13,7 +13,7 @@ const RubberBand::RubberBandStretcher::Options kHighQuality = RubberBand::Rubber
     RubberBand::RubberBandStretcher::OptionPitchHighConsistency |
     RubberBand::RubberBandStretcher::OptionEngineFiner;
 
-PitchShifter::PitchShifter(size_t sampleRate, size_t channel_count, bool high_quality) :
+RealtimeRubberband::RealtimeRubberband(size_t sampleRate, size_t channel_count, bool high_quality) :
     latency_(0),
     start_pad_samples_(0),
     start_delay_samples_(0),
@@ -32,17 +32,17 @@ PitchShifter::PitchShifter(size_t sampleRate, size_t channel_count, bool high_qu
   std::cout << "Pitch shifter created" << std::endl;
 }
 
-PitchShifter::~PitchShifter() {
+RealtimeRubberband::~RealtimeRubberband() {
   delete[] output_buffer_;
   delete[] scratch_;
   std::cout << "Pitch shifter destroyed" << std::endl;
 }
 
-int PitchShifter::getVersion() {
+int RealtimeRubberband::getVersion() {
   return stretcher_->getEngineVersion();
 }
 
-void PitchShifter::setTempo(double tempo) {
+void RealtimeRubberband::setTempo(double tempo) {
   if(stretcher_->getTimeRatio() != tempo) {
     fetchProcessed();
     stretcher_->reset();
@@ -51,7 +51,7 @@ void PitchShifter::setTempo(double tempo) {
   }
 }
 
-void PitchShifter::setPitch(double pitch) {
+void RealtimeRubberband::setPitch(double pitch) {
   if(stretcher_->getPitchScale() != pitch) {
     fetchProcessed();
     stretcher_->reset();
@@ -60,7 +60,7 @@ void PitchShifter::setPitch(double pitch) {
   }
 }
 
-void PitchShifter::setFormantScale(double scale) {
+void RealtimeRubberband::setFormantScale(double scale) {
   if(stretcher_->getFormantScale() != scale) {
     fetchProcessed();
     stretcher_->reset();
@@ -69,11 +69,11 @@ void PitchShifter::setFormantScale(double scale) {
   }
 }
 
-__attribute__((unused)) size_t PitchShifter::getSamplesAvailable() {
+__attribute__((unused)) size_t RealtimeRubberband::getSamplesAvailable() {
   return output_buffer_[0]->getReadSpace();
 }
 
-void PitchShifter::push(uintptr_t input_ptr, size_t sample_size) {
+void RealtimeRubberband::push(uintptr_t input_ptr, size_t sample_size) {
   auto *input = reinterpret_cast<float *>(input_ptr); // NOLINT(performance-no-int-to-ptr)
   auto **arr_to_process = new float *[channel_count_];
 
@@ -98,7 +98,7 @@ void PitchShifter::push(uintptr_t input_ptr, size_t sample_size) {
   fetchProcessed();
 }
 
-__attribute__((unused)) void PitchShifter::pull(uintptr_t output_ptr, size_t sample_size) {
+__attribute__((unused)) void RealtimeRubberband::pull(uintptr_t output_ptr, size_t sample_size) {
   auto *output = reinterpret_cast<float *>(output_ptr); // NOLINT(performance-no-int-to-ptr)
   for (size_t channel = 0; channel < channel_count_; ++channel) {
     size_t available = output_buffer_[channel]->getReadSpace();
@@ -115,7 +115,7 @@ __attribute__((unused)) void PitchShifter::pull(uintptr_t output_ptr, size_t sam
   }
 }
 
-void PitchShifter::fetchProcessed() {
+void RealtimeRubberband::fetchProcessed() {
   auto available = stretcher_->available();
   if (available > 0) {
     // We have to discard the first start_delay_samples_
@@ -142,11 +142,11 @@ void PitchShifter::fetchProcessed() {
   }
 }
 
-int PitchShifter::getLatency() {
+int RealtimeRubberband::getLatency() {
   return latency_;
 }
 
-void PitchShifter::updateRatio() {
+void RealtimeRubberband::updateRatio() {
   start_pad_samples_ = stretcher_->getPreferredStartPad();
   start_delay_samples_ = stretcher_->getStartDelay();
 }

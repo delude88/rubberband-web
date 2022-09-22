@@ -6,19 +6,21 @@
       "esnext",
       "dom"
     ],
+    "strict": true,
+    "alwaysStrict": true,
     "moduleResolution": "node",
-    "strict": false,
+    "composite": true,
+    "declarationMap": true,
     "sourceMap": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
     "skipLibCheck": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "rootDir": "src",
     "outDir": "dist",
-    "rootDir": "src"
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.js"
   ],
   "exclude": [
     "node_modules"

@@ -2,16 +2,21 @@
 // Created by Tobias Hegemann on 20.09.22.
 //
 
-#ifndef RUBBERBAND_WEB_SRC_PITCHSHIFTER_H_
-#define RUBBERBAND_WEB_SRC_PITCHSHIFTER_H_
+#ifndef RUBBERBAND_WEB_SRC_OFFLINE_RUBBERBAND_H_
+#define RUBBERBAND_WEB_SRC_OFFLINE_RUBBERBAND_H_
 
 #include <RubberBandStretcher.h>
-#include "../lib/rubberband/src/common/RingBuffer.h"
+#include "../../lib/rubberband/src/common/RingBuffer.h"
 
-class PitchShifter {
+/**
+
+Job: read many
+**/
+
+class OfflineRubberband {
  public:
-  PitchShifter(size_t sampleRate, size_t channel_count, bool high_quality = false);
-  ~PitchShifter();
+  OfflineRubberband(size_t sampleRate, size_t channel_count, bool high_quality = false);
+  ~OfflineRubberband();
 
   int getVersion();
 
@@ -50,4 +55,4 @@ class PitchShifter {
   const size_t kReserve_ = 8192;
 };
 
-#endif //RUBBERBAND_WEB_SRC_PITCHSHIFTER_H_
+#endif //RUBBERBAND_WEB_SRC_OFFLINE_RUBBERBAND_H_

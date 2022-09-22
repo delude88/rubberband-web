@@ -58,7 +58,7 @@ class RubberbandProcessor extends AudioWorkletProcessor {
     }
 
     close() {
-        this.port.onmessage = undefined
+        this.port.onmessage = null
         this.running = false;
     }
 

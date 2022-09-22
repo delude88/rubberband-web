@@ -9,23 +9,15 @@ class HeapArray {
   private readonly module: EmscriptenModule;
   private readonly length: number;
   private readonly channelCount: number;
-  private dataPtr: number;
+  private readonly dataPtr: number;
   private channelData: Float32Array[] = []
 
   constructor(module: EmscriptenModule, length: number, channelCount: number = 1) {
     this.module = module
     this.channelCount = channelCount
     this.length = length
-    this.allocateHeap()
-    this.ready = true
-  }
 
-  public close() {
-    this.ready = false
-    this.module._free(this.dataPtr)
-  }
-
-  private allocateHeap() {
+    // Allocate heap
     const channelByteSize = this.length * BYTES_PER_SAMPLE;
     const dataByteSize = this.channelCount * channelByteSize;
     this.dataPtr = this.module._malloc(dataByteSize)
@@ -33,10 +25,16 @@ class HeapArray {
       const startByteOffset = this.dataPtr + channel * channelByteSize;
       const endByteOffset = startByteOffset + channelByteSize;
       this.channelData[channel] =
-        this.module.HEAPF32.subarray(
-          startByteOffset >> BYTES_PER_UNIT,
-          endByteOffset >> BYTES_PER_UNIT);
+          this.module.HEAPF32.subarray(
+              startByteOffset >> BYTES_PER_UNIT,
+              endByteOffset >> BYTES_PER_UNIT);
     }
+    this.ready = true
+  }
+
+  public close() {
+    this.ready = false
+    this.module._free(this.dataPtr)
   }
 
   public getHeapAddress(): number {

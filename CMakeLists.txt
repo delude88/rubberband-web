@@ -7,8 +7,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_executable(rubberband_web
         src/demo.cpp
-        src/PitchShifter.cpp
-        src/PitchShifter.h)
+        src/cpp/PitchShifter.cpp
+        src/cpp/PitchShifter.h)
 
 target_compile_definitions(
         rubberband_web

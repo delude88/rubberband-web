@@ -1,6 +1,6 @@
 class RubberbandNode extends AudioWorkletNode {
 
-  constructor(context) {
+  constructor(context: BaseAudioContext) {
     super(context, "rubberband-processor");
   }
 

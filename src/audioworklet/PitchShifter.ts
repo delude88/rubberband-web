@@ -21,8 +21,8 @@ class PitchShifter {
     public constructor(sampleRate: number, channelCount: number, options?: PitchShifterOptions) {
         this.numSamples = options?.numSamples || RENDER_QUANTUM_FRAMES
         this.channelCount = channelCount
-        this.highQuality = options?.highQuality
-        this.instance = new Module.PitchShifter(sampleRate, channelCount, this.highQuality);
+        this.highQuality = options?.highQuality || false
+        this.instance = new Module.RealtimeRubberband(sampleRate, channelCount, this.highQuality);
         this.inputArray = new HeapArray(Module, RENDER_QUANTUM_FRAMES, channelCount);
         this.outputArray = new HeapArray(Module, RENDER_QUANTUM_FRAMES, channelCount);
         options?.pitch && this.setPitch(options.pitch)
