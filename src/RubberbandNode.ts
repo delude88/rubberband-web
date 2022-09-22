@@ -1,4 +1,4 @@
-class RubberbandNode extends AudioWorkletNode {
+class RubberBandNode extends AudioWorkletNode {
 
   constructor(context: BaseAudioContext) {
     super(context, "rubberband-processor");
@@ -21,17 +21,18 @@ class RubberbandNode extends AudioWorkletNode {
   }
 }
 
-async function createRubberbandNode(
+async function createRubberBandNode(
   context: BaseAudioContext,
   url: string
-): Promise<RubberbandNode> {
+): Promise<RubberBandNode> {
   // ensure audioWorklet has been loaded
   try {
-    return new RubberbandNode(context)
+    return new RubberBandNode(context)
   } catch (err) {
     await context.audioWorklet.addModule(url)
-    return new RubberbandNode(context)
+    return new RubberBandNode(context)
   }
 }
 
-export {RubberbandNode, createRubberbandNode}
+
+export {RubberBandNode, createRubberBandNode}

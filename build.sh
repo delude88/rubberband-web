@@ -23,8 +23,8 @@ emcc ${CXXFLAGS} -c lib/rubberband/single/RubberBandSingle.cpp -o lib/librubberb
 
 # Compile PitchShifter.cpp
 echo "(2/4) Compiling classes"
-emcc ${CXXFLAGS} -c src/cpp/OfflineRubberband.cpp -o lib/offlinerubberband.o
-emcc ${CXXFLAGS} -c src/cpp/RealtimeRubberband.cpp -o lib/realtimerubberband.o
+emcc ${CXXFLAGS} -c src/cpp/OfflineRubberBand.cpp -o lib/offlinerubberband.o
+emcc ${CXXFLAGS} -c src/cpp/RealtimeRubberBand.cpp -o lib/realtimerubberband.o
 
 # Compile rubberband.cc
 echo "(3/4) Compiling WASM interface"
@@ -50,3 +50,8 @@ emcc ${LDFLAGS} \
       lib/rubberband.o \
       -o src/audioworklet/rubberband.wasmmodule.js \
       --post-js ./em-es6-module.js
+
+# Build safari test
+echo "(5/4) Safari test"
+#emcc --bind -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=1 src/wasm/test.cpp -o dist/hello.js
+emcc --bind -std=c++11 -Os -s WASM=1 -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=1 src/wasm/test.cpp -o dist/hello.wasm

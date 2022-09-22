@@ -2,7 +2,7 @@
 // Created by Tobias Hegemann on 20.09.22.
 //
 
-#include "RealtimeRubberband.h"
+#include "RealtimeRubberBand.h"
 
 #include <algorithm>
 
@@ -13,14 +13,19 @@ const RubberBand::RubberBandStretcher::Options kHighQuality = RubberBand::Rubber
     RubberBand::RubberBandStretcher::OptionPitchHighConsistency |
     RubberBand::RubberBandStretcher::OptionEngineFiner;
 
-RealtimeRubberband::RealtimeRubberband(size_t sampleRate, size_t channel_count, bool high_quality) :
-    latency_(0),
+RealtimeRubberBand::RealtimeRubberBand(size_t sampleRate, size_t channel_count, bool high_quality) :
     start_pad_samples_(0),
     start_delay_samples_(0),
-    channel_count_(channel_count),
-    stretcher_(new RubberBand::RubberBandStretcher(sampleRate, channel_count,
+    channel_count_(channel_count) {
+  if (sampleRate <= 0) {
+    throw std::range_error("Sample rate has to be greater than 0");
+  }
+  if (channel_count <= 0) {
+    throw std::range_error("Channel count has to be greater than 0");
+  }
+  stretcher_ = new RubberBand::RubberBandStretcher(sampleRate, channel_count,
                                                    high_quality ? kHighQuality : kDefaultOption
-    )) {
+  );
   output_buffer_ = new RubberBand::RingBuffer<float> *[channel_count_];
   scratch_ = new float *[channel_count_];
   auto buffer_size = kBlockSize_ + kReserve_ + 8192;
@@ -29,21 +34,22 @@ RealtimeRubberband::RealtimeRubberband(size_t sampleRate, size_t channel_count, 
     scratch_[channel] = new float[buffer_size];
   }
   updateRatio();
-  std::cout << "Pitch shifter created" << std::endl;
 }
 
-RealtimeRubberband::~RealtimeRubberband() {
+RealtimeRubberBand::~RealtimeRubberBand() {
   delete[] output_buffer_;
   delete[] scratch_;
-  std::cout << "Pitch shifter destroyed" << std::endl;
 }
 
-int RealtimeRubberband::getVersion() {
+int RealtimeRubberBand::getVersion() {
   return stretcher_->getEngineVersion();
 }
 
-void RealtimeRubberband::setTempo(double tempo) {
-  if(stretcher_->getTimeRatio() != tempo) {
+void RealtimeRubberBand::setTempo(double tempo) {
+  if (tempo <= 0) {
+    throw std::range_error("Tempo has to be greater than 0");
+  }
+  if (stretcher_->getTimeRatio() != tempo) {
     fetchProcessed();
     stretcher_->reset();
     stretcher_->setTimeRatio(tempo);
@@ -51,8 +57,11 @@ void RealtimeRubberband::setTempo(double tempo) {
   }
 }
 
-void RealtimeRubberband::setPitch(double pitch) {
-  if(stretcher_->getPitchScale() != pitch) {
+void RealtimeRubberBand::setPitch(double pitch) {
+  if (pitch <= 0) {
+    throw std::range_error("Pitch has to be greater than 0");
+  }
+  if (stretcher_->getPitchScale() != pitch) {
     fetchProcessed();
     stretcher_->reset();
     stretcher_->setPitchScale(pitch);
@@ -60,8 +69,11 @@ void RealtimeRubberband::setPitch(double pitch) {
   }
 }
 
-void RealtimeRubberband::setFormantScale(double scale) {
-  if(stretcher_->getFormantScale() != scale) {
+void RealtimeRubberBand::setFormantScale(double scale) {
+  if (scale <= 0) {
+    throw std::range_error("Format scale has to be greater than 0");
+  }
+  if (stretcher_->getFormantScale() != scale) {
     fetchProcessed();
     stretcher_->reset();
     stretcher_->setFormantScale(scale);
@@ -69,11 +81,11 @@ void RealtimeRubberband::setFormantScale(double scale) {
   }
 }
 
-__attribute__((unused)) size_t RealtimeRubberband::getSamplesAvailable() {
+__attribute__((unused)) size_t RealtimeRubberBand::getSamplesAvailable() {
   return output_buffer_[0]->getReadSpace();
 }
 
-void RealtimeRubberband::push(uintptr_t input_ptr, size_t sample_size) {
+void RealtimeRubberBand::push(uintptr_t input_ptr, size_t sample_size) {
   auto *input = reinterpret_cast<float *>(input_ptr); // NOLINT(performance-no-int-to-ptr)
   auto **arr_to_process = new float *[channel_count_];
 
@@ -98,7 +110,7 @@ void RealtimeRubberband::push(uintptr_t input_ptr, size_t sample_size) {
   fetchProcessed();
 }
 
-__attribute__((unused)) void RealtimeRubberband::pull(uintptr_t output_ptr, size_t sample_size) {
+__attribute__((unused)) void RealtimeRubberBand::pull(uintptr_t output_ptr, size_t sample_size) {
   auto *output = reinterpret_cast<float *>(output_ptr); // NOLINT(performance-no-int-to-ptr)
   for (size_t channel = 0; channel < channel_count_; ++channel) {
     size_t available = output_buffer_[channel]->getReadSpace();
@@ -115,7 +127,7 @@ __attribute__((unused)) void RealtimeRubberband::pull(uintptr_t output_ptr, size
   }
 }
 
-void RealtimeRubberband::fetchProcessed() {
+void RealtimeRubberBand::fetchProcessed() {
   auto available = stretcher_->available();
   if (available > 0) {
     // We have to discard the first start_delay_samples_
@@ -142,11 +154,7 @@ void RealtimeRubberband::fetchProcessed() {
   }
 }
 
-int RealtimeRubberband::getLatency() {
-  return latency_;
-}
-
-void RealtimeRubberband::updateRatio() {
+void RealtimeRubberBand::updateRatio() {
   start_pad_samples_ = stretcher_->getPreferredStartPad();
   start_delay_samples_ = stretcher_->getStartDelay();
 }

@@ -1,64 +1,64 @@
 #include "emscripten/bind.h"
-#include "../cpp/OfflineRubberband.h"
-#include "../cpp/RealtimeRubberband.h"
+#include "../cpp/OfflineRubberBand.h"
+#include "../cpp/RealtimeRubberBand.h"
 
 using namespace emscripten;
 
-EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberband) {
-    class_<RealtimeRubberband>("RealtimeRubberband")
+EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
+    class_<RealtimeRubberBand>("RealtimeRubberBand")
 
         .constructor<size_t, size_t, bool>()
 
         .function("getVersion",
-                  &RealtimeRubberband::getVersion)
+                  &RealtimeRubberBand::getVersion)
 
         .function("setPitch",
-                  &RealtimeRubberband::setPitch)
+                  &RealtimeRubberBand::setPitch)
 
         .function("setTempo",
-                  &RealtimeRubberband::setTempo)
+                  &RealtimeRubberBand::setTempo)
 
         .function("setFormantScale",
-                  &RealtimeRubberband::setFormantScale)
+                  &RealtimeRubberBand::setFormantScale)
 
         .function("pull",
-                  &RealtimeRubberband::pull,
+                  &RealtimeRubberBand::pull,
                   allow_raw_pointers())
 
         .function("push",
-                  &RealtimeRubberband::push,
+                  &RealtimeRubberBand::push,
                   allow_raw_pointers())
 
         .function("getSamplesAvailable",
-                  &RealtimeRubberband::getSamplesAvailable);
+                  &RealtimeRubberBand::getSamplesAvailable);
 }
 
 
-EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberband) {
-    class_<OfflineRubberband>("OfflineRubberband")
+EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberBand) {
+    class_<OfflineRubberband>("OfflineRubberBand")
 
         .constructor<size_t, size_t, bool>()
 
         .function("getVersion",
-                  &OfflineRubberband::getVersion)
+                  &OfflineRubberBand::getVersion)
 
         .function("setPitch",
-                  &OfflineRubberband::setPitch)
+                  &OfflineRubberBand::setPitch)
 
         .function("setTempo",
-                  &OfflineRubberband::setTempo)
+                  &OfflineRubberBand::setTempo)
 
         .function("setFormantScale",
-                  &OfflineRubberband::setFormantScale)
+                  &OfflineRubberBand::setFormantScale)
 
         .function("pull",
-                  &OfflineRubberband::pull,
+                  &OfflineRubberBand::pull,
                   allow_raw_pointers())
 
         .function("push",
-                  &OfflineRubberband::push,
+                  &OfflineRubberBand::push,
                   allow_raw_pointers())
 
         .function("getSamplesAvailable",
-                  &OfflineRubberband::getSamplesAvailable);
+                  &OfflineRubberBand::getSamplesAvailable);
 }

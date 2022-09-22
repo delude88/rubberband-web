@@ -19,6 +19,33 @@ async function createWorkletNode(
     }
 }
 
+async function runTest() {
+    if (!audioContext) {
+        audioContext = new AudioContext()
+    }
+    console.log("Loading worklet")
+    await audioContext.audioWorklet.addModule("../dist/audioworklet/test-processor.js")
+    const node = new AudioWorkletNode(audioContext, "test-processor")
+
+    console.log("Compiling wasm")
+    const binaryModule = await WebAssembly.compileStreaming(fetch('../dist/hello.wasm'))
+
+    const importObject = {
+        module: {},
+        env: {
+            memory: new WebAssembly.Memory({ initial: 256 }),
+        }
+    };
+    await WebAssembly.instantiate(binaryModule, importObject);
+
+    console.log("Sending pre-compiled wasm to worklet")
+    //node.port.postMessage(module)
+
+    //const instance = await WebAssembly.instantiate(binaryModule, {});
+
+    console.log("test-processor loaded")
+}
+
 function enablePlayer() {
     document.getElementById("play")?.removeAttribute("disabled")
 }

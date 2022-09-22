@@ -7,6 +7,7 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "dev": "tsc --watch",
+    "dev:example": "tsc -b example --watch",
     "build": "npm run build:wasm && npm run build:ts && npm run build:example",
     "build:wasm": "./build.sh",
     "build:ts": "tsc",
