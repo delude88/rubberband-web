@@ -1,3 +1,5 @@
+//import Module from "./hello.js";
+
 let audioContext: AudioContext | undefined;
 let source: AudioNode | undefined;
 let processor: AudioWorkletNode | undefined;
@@ -19,31 +21,58 @@ async function createWorkletNode(
     }
 }
 
+let Module: any = {}
+
 async function runTest() {
     if (!audioContext) {
         audioContext = new AudioContext()
     }
-    console.log("Loading worklet")
+
+    console.log("Loading program")
+    const b = WebAssembly.instantiateStreaming(fetch('dist/program.wasm'), {})
+    
+
+    await WebAssembly.compileStreaming(fetch('dist/program.wasm'))
+    console.log("compiled streaming")
+    /*const b = await fetch('dist/program.wasm').then(r => r.arrayBuffer())
+    const m = new WebAssembly.Instance(new WebAssembly.Module(b));
+    if (typeof m.exports.main === "function") {
+        console.log(m.exports.main())
+    }*/
+    console.log("Loaded program")
+
+    // PRELOAD BINARY
+    console.log("PREFETCHING WASM")
+
+    const binary = await fetch("./dist/hello.wasm")
+    //Module['wasmBinary'] = await binary.arrayBuffer()
+    Module.wasmBinary = await binary.arrayBuffer()
+
+    console.log("Module.wasmBinary", Module["wasmBinary"])
+
+    console.log("LOADING HELLO.JS", Module)
+    //import("./hello.js");
+    console.log("LOADED")
+
+
     await audioContext.audioWorklet.addModule("../dist/audioworklet/test-processor.js")
     const node = new AudioWorkletNode(audioContext, "test-processor")
 
-    console.log("Compiling wasm")
-    const binaryModule = await WebAssembly.compileStreaming(fetch('../dist/hello.wasm'))
 
+    /*
+    //const binaryModule = await WebAssembly.compileStreaming(fetch('../dist/hello.wasm'))
     const importObject = {
         module: {},
         env: {
-            memory: new WebAssembly.Memory({ initial: 256 }),
+            memory: new WebAssembly.Memory({initial: 256}),
         }
     };
-    await WebAssembly.instantiate(binaryModule, importObject);
+    //await WebAssembly.instantiate(binaryModule, importObject);*/
 
-    console.log("Sending pre-compiled wasm to worklet")
     //node.port.postMessage(module)
 
     //const instance = await WebAssembly.instantiate(binaryModule, {});
 
-    console.log("test-processor loaded")
 }
 
 function enablePlayer() {
@@ -197,3 +226,5 @@ async function onFile(element: HTMLInputElement) {
         reader.readAsArrayBuffer(file);
     }
 }
+
+//export {onFile, runTest, handlePitch, handleTempo, handleQuality, startMic, startOscillator, stop}

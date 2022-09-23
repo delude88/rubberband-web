@@ -53,5 +53,21 @@ emcc ${LDFLAGS} \
 
 # Build safari test
 echo "(5/4) Safari test"
+emcc  --bind \
+      --bind \
+      -O1 \
+      -s WASM=1 \
+      -s BINARYEN_ASYNC_COMPILATION=0 \
+      -s ALLOW_MEMORY_GROWTH=1 \
+      -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
+      -s AUTO_JS_LIBRARIES=0 \
+      -s FILESYSTEM=0 \
+      -s ASSERTIONS=0 \
+      src/wasm/test.cpp -o src/audioworklet/hello.js \
+      --post-js ./em-es6-module.js
 #emcc --bind -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=1 src/wasm/test.cpp -o dist/hello.js
-emcc --bind -std=c++11 -Os -s WASM=1 -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=1 src/wasm/test.cpp -o dist/hello.wasm
+#emcc --bind -std=c++11 -Os -s WASM=1 -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=1 src/wasm/test.cpp -o dist/hello.wasm
+#emcc --bind -std=c++11 -Os -s WASM=1 -s BINARYEN_ASYNC_COMPILATION=0 -s SIDE_MODULE=2 -s EXPORTED_FUNCTIONS="['_sayHello']" -s EXPORTED_RUNTIME_METHODS="['cwrap']" src/wasm/test.cpp -o dist/hello.wasm
+#emcc --bind --no-entry -s WASM=1 -s MAIN_MODULE=1 src/wasm/test.cpp -o dist/hello.wasm
+#emcc --bind -s MAIN_MODULE=1 -s EXPORT_ALL=1 -s ASSERTIONS=1 src/wasm/test.cpp -o dist/hello.wasm
+#emcc main.c -s MAIN_MODULE=1 -s EXPORT_ALL=1 -s ASSERTIONS=1 -o main.js
