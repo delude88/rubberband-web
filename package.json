@@ -1,10 +1,15 @@
 {
   "name": "rubberband-web",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "0.0.2",
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
   "license": "GPL-2.0-or-later",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "public"
+  ],
   "scripts": {
     "type-check": "tsc",
     "dev": "webpack --mode=development --watch",
