@@ -4,20 +4,44 @@
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
   "license": "GPL-2.0-or-later",
+  "keywords": [
+    "audioworklet",
+    "pitch",
+    "wasm"
+  ],
   "type": "module",
-  "module": "dist/teckos.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm5/index.js",
+  "es2015": "./dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "typesVersions": {
+    ">=4.2": {
+      "*": [
+        "dist/types/*"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "node": "./dist/cjs/index.js",
+      "require": "./dist/cjs/index.js",
+      "es2015": "./dist/esm/index.js",
+      "default": "./dist/esm5/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist",
     "public"
   ],
   "scripts": {
-    "type-check": "tsc",
     "dev": "webpack --mode=development --watch",
-    "build": "npm run build:wasm && npm run build:worklet",
-    "build:worklet": "npm run type-check && webpack --mode=production",
+    "build": "npm run build:wasm && npm run build:worklet && npm run build:web",
+    "build:worklet": "tsc -b src/worklet/tsconfig.json && webpack --mode=production",
     "build:wasm": "cd wasm && ./build.sh",
-    "build:web": "tsc --project tsconfig.web.json",
+    "build:web": "tsc -b src/web/tsconfig.cjs.json src/web/tsconfig.esm.json src/web/tsconfig.esm5.json src/web/tsconfig.types.json",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "browser": {
