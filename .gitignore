@@ -434,3 +434,4 @@ https://www.toptal.com/developers/gitignore/api/node,intellij+all,visualstudioco
 public
 build
 dist
+pnpm-lock.yaml
