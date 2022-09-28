@@ -17,13 +17,15 @@
     /* Specify the base directory to resolve non-relative module names. */
 
     /* JavaScript Support */
-    "allowJs": true,
+    "allowJs": false,
     /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
 
     /* Emit */
-    "noEmit": true,
-    /* Disable emitting files from a compilation. */
+    "noEmit": false,
+    "declaration": true,
 
+    /* Disable emitting files from a compilation. */
+    "outDir": "dist",
     /* Interop Constraints */
     "esModuleInterop": true,
     /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
@@ -39,7 +41,7 @@
     /* Skip type checking all .d.ts files. */
   },
   "include": [
-    "src/worklet/**/*.ts"
+    "src/web/**/*.ts"
   ],
   "exclude": [
     "node_modules"

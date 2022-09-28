@@ -1,4 +1,4 @@
-import {PitchShifter} from "./PitchShifter.js"
+import {PitchShifter} from "./PitchShifter"
 
 class RubberbandProcessor extends AudioWorkletProcessor {
     private api: PitchShifter | undefined;

@@ -1,6 +1,6 @@
 #include "emscripten/bind.h"
-#include "../cpp/OfflineRubberBand.h"
-#include "../cpp/RealtimeRubberBand.h"
+#include "OfflineRubberBand.h"
+#include "RealtimeRubberBand.h"
 
 using namespace emscripten;
 
@@ -35,7 +35,7 @@ EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
 
 
 EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberBand) {
-    class_<OfflineRubberband>("OfflineRubberBand")
+    class_<OfflineRubberBand>("OfflineRubberBand")
 
         .constructor<size_t, size_t, bool>()
 

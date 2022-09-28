@@ -1,5 +1,5 @@
-import Module from "./rubberband.wasmmodule.js";
-import HeapArray from "./HeapArray.js";
+import Module from "../../wasm/build/rubberband.js";
+import HeapArray from "./HeapArray";
 
 const RENDER_QUANTUM_FRAMES = 128;
 
