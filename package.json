@@ -4,7 +4,8 @@
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
   "license": "GPL-2.0-or-later",
-  "main": "dist/index.js",
+  "type": "module",
+  "module": "dist/teckos.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",

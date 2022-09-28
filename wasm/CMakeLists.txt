@@ -65,7 +65,6 @@ set_target_properties(rubberband
         --post-js ${CMAKE_SOURCE_DIR}/em-es6-module.js"
         )
 
-
 ###############################
 #
 # Rubberband library API tests

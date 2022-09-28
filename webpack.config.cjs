@@ -22,8 +22,8 @@ const bundle = (worklet) => {
             extensions: ['.ts', '.js'],
         },
         performance: {
-            maxAssetSize: 600000,
-            maxEntrypointSize: 600000
+            maxAssetSize: 900000,
+            maxEntrypointSize: 900000
         },
         target: "webworker",
         output: {
