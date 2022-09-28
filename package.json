@@ -1,6 +1,6 @@
 {
   "name": "rubberband-web",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
   "license": "GPL-2.0-or-later",
@@ -12,7 +12,7 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm5/index.js",
   "es2015": "./dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "index.d.ts",
   "typesVersions": {
     ">=4.2": {
       "*": [
@@ -61,5 +61,8 @@
     "typescript": "^4.8.4",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "tslib": "^2.4.0"
   }
 }
