@@ -1,4 +1,5 @@
 #!/bin/bash
+# Install required dependencies
 
 # Make sure we have a 'third-party' folder.
 mkdir -p third-party
