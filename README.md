@@ -2,6 +2,10 @@
 
 A wasm-powered audio worklet using the [Rubber Band library](https://breakfastquay.com/rubberband/) to provide pitch shifting for the Web Audio API.
 
+# Example
+
+Checkout the [example page here](https://delude88.github.io/rubberband-web/).
+
 ## Usage
 
 Add this package to your project using your favorite package manager:
