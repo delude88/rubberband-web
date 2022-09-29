@@ -5,22 +5,25 @@ pushd lib || exit
   . setup.sh
 popd || exit
 
-fetch_brew_dependency() {
-    FORMULA_NAME=$1
+if [[ $OSTYPE == 'darwin'* ]]; then
+  fetch_brew_dependency() {
+      FORMULA_NAME=$1
 
-    echo "Fetching Brew dependency: '$FORMULA_NAME'."
+      echo "Fetching Brew dependency: '$FORMULA_NAME'."
 
-    if brew ls --versions $FORMULA_NAME > /dev/null; then
-        echo "Dependency '$FORMULA_NAME' is already installed, continuing ..."
-    else
-        echo "Dependency '$FORMULA_NAME' is not installed, installing via Homebrew ..."
-        brew install $FORMULA_NAME
-    fi
-}
+      if brew ls --versions $FORMULA_NAME > /dev/null; then
+          echo "Dependency '$FORMULA_NAME' is already installed, continuing ..."
+      else
+          echo "Dependency '$FORMULA_NAME' is not installed, installing via Homebrew ..."
+          brew install $FORMULA_NAME
+      fi
+  }
 
-# Install required toolset
-fetch_brew_dependency "cmake"
-fetch_brew_dependency "emscripten"
+  # Install required toolset
+  fetch_brew_dependency "cmake"
+  fetch_brew_dependency "emscripten"
+fi
+
 pushd lib || exit
   bash setup.sh
 popd || exit
