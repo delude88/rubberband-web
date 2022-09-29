@@ -28,7 +28,7 @@ jobs:
         run: |
           npm run build
         env:
-          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}
+          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main
       - run: echo "🍏 This job's status is ${{ job.status }}."
   deploy:
     needs: build
