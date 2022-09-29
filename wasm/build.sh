@@ -34,7 +34,12 @@ if [ ! -d "build" ]; then
 fi
 
 # Build using emscripten shipped by brew and cmake
-EMSCRIPTEN=$(brew --prefix emscripten)
+
+if [ -z ${EMSCRIPTEN+x} ]; then
+  if [[ $OSTYPE == 'darwin'* ]]; then
+    EMSCRIPTEN=$(brew --prefix emscripten)
+  fi
+fi
 EMSCRIPTEN_CMAKE_PATH=${EMSCRIPTEN}/libexec/cmake/Modules/Platform/Emscripten.cmake
 pushd build || exit
   echo "Emscripten CMake path: ${EMSCRIPTEN_CMAKE_PATH}"
