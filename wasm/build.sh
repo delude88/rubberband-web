@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 
 pushd lib || exit
   . setup.sh

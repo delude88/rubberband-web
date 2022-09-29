@@ -39,7 +39,7 @@
     "dev": "webpack --mode=development --watch",
     "build": "npm run build:wasm && npm run build:worklet && npm run build:web",
     "build:worklet": "tsc -b src/worklet/tsconfig.json && webpack --mode=production",
-    "build:wasm": "cd wasm && ./build.sh",
+    "build:wasm": "cd wasm && bash ./build.sh",
     "build:web": "tsc -b src/web/tsconfig.cjs.json src/web/tsconfig.esm.json src/web/tsconfig.esm5.json src/web/tsconfig.types.json",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
