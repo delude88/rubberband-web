@@ -24,23 +24,19 @@ jobs:
       - name: Installing
         run: |
           npm install
-      - name: List 1
+      - name: List
         run: ls ${EMSCRIPTEN}
         env:
-          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}
+          EMSCRIPTEN: ${{env.EMSDK}}
       - name: List 2
         run: ls ${EMSCRIPTEN}
         env:
-          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main
-      - name: List 3
-        run: ls ${EMSCRIPTEN}
-        env:
-          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main/emscripten
+          EMSCRIPTEN: ${{env.EMSDK}}/emscripten
       - name: Building
         run: |
           npm run build
         env:
-          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main/emscripten
+          EMSCRIPTEN: ${{env.EMSDK}}/emscripten
       - run: echo "🍏 This job's status is ${{ job.status }}."
   deploy:
     needs: build
