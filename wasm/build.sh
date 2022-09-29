@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+# Build the wasm module
 
 pushd lib || exit
   . setup.sh
