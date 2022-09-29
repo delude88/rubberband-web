@@ -38,16 +38,15 @@ jobs:
         env:
           EMSCRIPTEN: ${{env.EMSDK}}
       - run: echo "🍏 This job's status is ${{ job.status }}."
-  deploy:
-    needs: build
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-        - name: Deploy to GitHub Pages
-          id: deployment
-          uses: actions/deploy-pages@v1
+      - name: Copy rubberband-processor.js into example folder
+        run: cp public/* example/
+      - name: Find and Replace path to rubberband-processor in example.html
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+         find: "../public/rubberband-processor.js"
+         replace: "rubberband-processor.js"
+         include: "example/index.html"
+      - uses: JamesIves/github-pages-deploy-action@4.4.0
+        with:
+          branch: gh-pages
+          folder: example

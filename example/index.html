@@ -85,7 +85,6 @@
     audioContext = new AudioContext()
     await audioContext.resume()
     enableControls()
-    //processor = await createRubberBandNode("../public/rubberband-processor.js")
     processor = await createWorkletNode(audioContext, 'rubberband-processor', '../public/rubberband-processor.js')
     console.log('Started audio engine')
     return {
