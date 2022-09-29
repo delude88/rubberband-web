@@ -1,8 +1,15 @@
-name: Build and publish
-run-name: Publishing to github pages 🚀
-on: [push]
+name: Build and publish example
+
+run-name: Build'n'publish to github pages 🚀
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: [ "main" ]
+
 permissions:
   contents: write
+
 env:
   EM_VERSION: 3.1.23
   EM_CACHE_FOLDER: 'emsdk-cache'
@@ -12,6 +19,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
       - name: Setup cache
         id: cache-system-libraries
         uses: actions/cache@v2
@@ -23,19 +32,19 @@ jobs:
         with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
-      - name: Installing
+      - name: Installing packages
         run: |
           npm install
       - name: Building
         run: |
           npm run build
-      - name: Find and Replace path to rubberband-processor in example.html
+      - name: Preprare example.html
         uses: jacobtomlinson/gha-find-replace@v2
         with:
          find: "../public/rubberband-processor.js"
          replace: "rubberband-processor.js"
          include: "example/index.html"
-      - name: Copy rubberband-processor.js into example folder
+      - name: Copy result rubberband-processor.js into example folder
         run: cp public/* example/
       - name: Publish example to github pages
         uses: JamesIves/github-pages-deploy-action@v4.4.0
