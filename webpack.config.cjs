@@ -9,12 +9,17 @@ const getFilename = (filepath) => path.parse(filepath).name
 const bundle = (worklet) => {
     return {
         entry: path.resolve(__dirname, worklet),
+        context: path.resolve(__dirname, "."),
         module: {
             rules: [
                 {
                     test: /\.(js|jsx|tsx|ts)$/,
                     exclude: /node_modules/,
                     loader: 'babel-loader'
+                },
+                {
+                    test: /\.(wasm)$/i,
+                    type: "asset/inline",
                 }
             ],
         },
@@ -29,6 +34,7 @@ const bundle = (worklet) => {
         output: {
             filename: `${getFilename(worklet)}.js`,
             path: path.resolve(__dirname, 'public'),
+            publicPath: '',
         }
     }
 }

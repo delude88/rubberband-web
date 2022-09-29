@@ -1,0 +1,210 @@
+<html>
+<body>
+
+<h1>Rubberband-web</h1>
+
+<h2>Realtime</h2>
+
+<button id='osc' onclick='startOscillator()'>Use Oscillator</button>
+<button id='mic' onclick='startMic()'>Use Mic</button>
+<button id='stop' onclick='stopEngine()' disabled='disabled'>Stop</button>
+
+<br />
+
+<label for='pitch'>Pitch</label>
+<input id='pitch' onchange='handlePitch(this.value)' type='range' min='0.4' step='0.01'
+       max='1.6' value='1.0' disabled='disabled' />
+
+<br />
+
+<label for='tempo'>Tempo</label>
+<input id='tempo' onchange='handleTempo(this.value)' type='range' min='0.4' step='0.01'
+       max='1.6' value='1.0' disabled='disabled' />
+
+<label for='quality'>High quality</label>
+<input id='quality' onchange='handleQuality(this.checked)' type='checkbox' disabled='disabled' />
+
+<h2>File-based</h2>
+<label>Audio file: <input type='file' id='file' onchange='onFile(this)' accept='audio/*' /></label>
+<button id='play' disabled='disabled' onclick='playFile()'>play</button>
+
+<script>
+  let audioContext
+  let source
+  let processor
+  let stream
+  let fileBuffer
+  let fileAudioBuffer
+
+  async function createWorkletNode(
+    context,
+    name,
+    url
+  ) {
+    // ensure audioWorklet has been loaded
+    try {
+      return new AudioWorkletNode(context, name)
+    } catch (err) {
+      await context.audioWorklet.addModule(url)
+      return new AudioWorkletNode(context, name)
+    }
+  }
+
+  function enablePlayer() {
+    document.getElementById('play')?.removeAttribute('disabled')
+  }
+
+  function disablePlayer() {
+    document.getElementById('play')?.setAttribute('disabled', 'disabled')
+  }
+
+  function enableControls() {
+    disablePlayer()
+    document.getElementById('osc')?.setAttribute('disabled', 'disabled')
+    document.getElementById('mic')?.setAttribute('disabled', 'disabled')
+    document.getElementById('pitch')?.removeAttribute('disabled')
+    document.getElementById('tempo')?.removeAttribute('disabled')
+    document.getElementById('quality')?.removeAttribute('disabled')
+    document.getElementById('stop')?.removeAttribute('disabled')
+  }
+
+  function disableControls() {
+    document.getElementById('osc')?.removeAttribute('disabled')
+    document.getElementById('mic')?.removeAttribute('disabled')
+    document.getElementById('pitch')?.setAttribute('disabled', 'disabled')
+    document.getElementById('tempo')?.setAttribute('disabled', 'disabled')
+    document.getElementById('quality')?.setAttribute('disabled', 'disabled')
+    document.getElementById('stop')?.setAttribute('disabled', 'disabled')
+    if (fileBuffer) {
+      enablePlayer()
+    }
+  }
+
+  async function startEngine() {
+    console.log('Starting audio engine')
+    audioContext = new AudioContext()
+    await audioContext.resume()
+    enableControls()
+    //processor = await createRubberBandNode("../public/rubberband-processor.js")
+    processor = await createWorkletNode(audioContext, 'rubberband-processor', '../public/rubberband-processor.js')
+    console.log('Started audio engine')
+    return {
+      audioContext,
+      processor
+    }
+  }
+
+  async function stopEngine() {
+    if (processor) {
+      processor.port.postMessage(JSON.stringify(['close']))
+    }
+    if (processor && audioContext) {
+      processor.disconnect(audioContext.destination)
+    }
+    if (source && processor) {
+      source.disconnect(processor)
+    }
+    if (audioContext) {
+      await audioContext.close()
+    }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+    }
+    disableControls()
+  }
+
+  async function startOscillator() {
+    const { audioContext, processor } = await startEngine()
+
+    // Create source (oscillator)
+    const oscillatorNode = new OscillatorNode(audioContext, {
+      frequency: 380,
+      type: 'sine'
+    })
+    oscillatorNode.start()
+    source = oscillatorNode
+
+    // Connect nodes
+    console.log('Connecting nodes')
+    source.connect(processor)
+    processor.connect(audioContext.destination)
+  }
+
+  async function startMic() {
+    const { audioContext, processor } = await startEngine()
+
+    stream = await navigator.mediaDevices
+      .getUserMedia({
+        audio: true,
+        video: false
+      })
+
+    source = new MediaStreamAudioSourceNode(audioContext, {
+      mediaStream: stream
+    })
+
+    // Connect nodes
+    source.connect(processor)
+    processor.connect(audioContext.destination)
+  }
+
+  function handlePitch(value) {
+    if (processor) {
+      processor.port.postMessage(JSON.stringify(['pitch', value]))
+    }
+  }
+
+  function handleTempo(value) {
+    if (processor) {
+      processor.port.postMessage(JSON.stringify(['tempo', value]))
+    }
+  }
+
+  function handleQuality(value) {
+    if (processor) {
+      processor.port.postMessage(JSON.stringify(['quality', value]))
+    }
+  }
+
+  async function playFile() {
+    if (fileBuffer) {
+      disablePlayer()
+      const { audioContext, processor } = await startEngine()
+
+      // Clone array
+      //const clonedFileBuffer = new ArrayBuffer(fileBuffer.byteLength)
+      //new Uint8Array(clonedFileBuffer).set(new Uint8Array(fileBuffer))
+
+      if (!fileAudioBuffer) {
+        fileAudioBuffer = await audioContext.decodeAudioData(fileBuffer)
+      }
+      const bufferSource = audioContext.createBufferSource()
+      bufferSource.buffer = fileAudioBuffer
+      bufferSource.loop = true
+      source = bufferSource
+      bufferSource.start()
+
+      // Connect nodes
+      source.connect(processor)
+      processor.connect(audioContext.destination)
+    }
+  }
+
+  async function onFile(element) {
+    fileBuffer = undefined
+    fileAudioBuffer = undefined
+    if (element.files) {
+      const file = element.files[0]
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        if (event.target?.result && typeof event.target.result === 'object') {
+          fileBuffer = event.target.result
+          enablePlayer()
+        }
+      }
+      reader.readAsArrayBuffer(file)
+    }
+  }
+</script>
+</body>
+</html>

@@ -55,14 +55,13 @@ set_target_properties(rubberband
         "${OPTIMIZATION_FLAGS} \
         -s WASM=1 \
         -s ALLOW_MEMORY_GROWTH=1 \
-        -s BINARYEN_ASYNC_COMPILATION=0 \
         -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
+        -s ENVIRONMENT='web' \
         -s AUTO_JS_LIBRARIES=0 \
         -s FILESYSTEM=0 \
         -s ASSERTIONS=0 \
-        -s SINGLE_FILE=1 \
-        -O1 \
-        --post-js ${CMAKE_SOURCE_DIR}/em-es6-module.js"
+        -s MODULARIZE=1 \
+        -s SINGLE_FILE=1"
         )
 
 ###############################
