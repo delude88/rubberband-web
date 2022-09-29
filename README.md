@@ -13,7 +13,7 @@ yarn add rubberband-web
 pnpm add rubberband-web
 ````
 
-If you are using an framework using assets management (next.js, Angular, etc.), start by copying or linking this package's _public/rubberband-processor.js_ into your public asset folder.
+If you are using a framework using assets management (next.js, Angular, etc.), start by copying or linking this package's _public/rubberband-processor.js_ into your public asset folder.
 In many cases you can also reference directly to the _node_modules/rubberband-web/public/rubberband-processor.js_.
 
 Then use the helper function _createRubberBandNode_ to create a worklet instance:
