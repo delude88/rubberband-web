@@ -27,16 +27,16 @@ jobs:
       - name: List
         run: ls ${EMSCRIPTEN}
         env:
-          EMSCRIPTEN: ${{env.EMSDK}}/emsdk
+          EMSCRIPTEN: ${{env.EMSDK}}
       - name: List 2
         run: ls ${EMSCRIPTEN}
         env:
-          EMSCRIPTEN: ${{env.EMSDK}}/emsdk/emscripten
+          EMSCRIPTEN: ${{env.EMSDK}}/emsdk
       - name: Building
         run: |
           npm run build
         env:
-          EMSCRIPTEN: ${{env.EMSDK}}/emsdk/emscripten
+          EMSCRIPTEN: ${{env.EMSDK}}
       - run: echo "🍏 This job's status is ${{ job.status }}."
   deploy:
     needs: build
