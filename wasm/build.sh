@@ -37,10 +37,10 @@ fi
 
 if [ -z ${EMSCRIPTEN+x} ]; then
   if [[ $OSTYPE == 'darwin'* ]]; then
-    EMSCRIPTEN=$(brew --prefix emscripten)
+    EMSCRIPTEN=$(brew --prefix emscripten)/libexec
   fi
 fi
-EMSCRIPTEN_CMAKE_PATH=${EMSCRIPTEN}/libexec/cmake/Modules/Platform/Emscripten.cmake
+EMSCRIPTEN_CMAKE_PATH=${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake
 pushd build || exit
   echo "Emscripten CMake path: ${EMSCRIPTEN_CMAKE_PATH}"
   cmake -DCMAKE_TOOLCHAIN_FILE=${EMSCRIPTEN_CMAKE_PATH} ..
