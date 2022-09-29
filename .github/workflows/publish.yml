@@ -24,29 +24,19 @@ jobs:
       - name: Installing
         run: |
           npm install
-      - name: List
-        run: ls ${EMSCRIPTEN}
-        env:
-          EMSCRIPTEN: ${{env.EMSDK}}
-      - name: List 2
-        run: ls ${EMSCRIPTEN}
-        env:
-          EMSCRIPTEN: ${{env.EMSDK}}/emsdk
       - name: Building
         run: |
           npm run build
-        env:
-          EMSCRIPTEN: ${{env.EMSDK}}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
-      - name: Copy rubberband-processor.js into example folder
-        run: cp public/* example/
       - name: Find and Replace path to rubberband-processor in example.html
         uses: jacobtomlinson/gha-find-replace@v2
         with:
          find: "../public/rubberband-processor.js"
          replace: "rubberband-processor.js"
          include: "example/index.html"
-      - uses: JamesIves/github-pages-deploy-action@4.4.0
+      - name: Copy rubberband-processor.js into example folder
+        run: cp public/* example/
+      - name: Publish example to github pages
+        uses: JamesIves/github-pages-deploy-action@4.4.0
         with:
           branch: gh-pages
           folder: example

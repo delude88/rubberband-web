@@ -1,10 +1,12 @@
 #!/bin/bash
 # Build the wasm module
 
+# Setup lib
 pushd lib || exit
   . setup.sh
 popd || exit
 
+# macOS: Install dependencies via brew
 if [[ $OSTYPE == 'darwin'* ]]; then
   fetch_brew_dependency() {
       FORMULA_NAME=$1
@@ -24,26 +26,12 @@ if [[ $OSTYPE == 'darwin'* ]]; then
   fetch_brew_dependency "emscripten"
 fi
 
-pushd lib || exit
-  bash setup.sh
-popd || exit
-
 # Make sure we have a 'build' folder.
-if [ ! -d "build" ]; then
-    mkdir build
-fi
+mkdir -p build
 
-# Build using emscripten shipped by brew and cmake
-
-if [ -z ${EMSCRIPTEN+x} ]; then
-  if [[ $OSTYPE == 'darwin'* ]]; then
-    EMSCRIPTEN=$(brew --prefix emscripten)/libexec
-  fi
-fi
-EMSCRIPTEN_CMAKE_PATH=${EMSCRIPTEN}/cmake/Modules/Platform/Emscripten.cmake
+# Now build
 pushd build || exit
-  echo "Emscripten CMake path: ${EMSCRIPTEN_CMAKE_PATH}"
-  cmake -DCMAKE_TOOLCHAIN_FILE=${EMSCRIPTEN_CMAKE_PATH} ..
+  emcmake cmake ..
   echo "Building project ..."
-  make
+  emmake make
 popd || exit
