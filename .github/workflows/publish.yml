@@ -1,11 +1,13 @@
 name: Build and publish
 run-name: Publishing to github pages 🚀
 on: [push]
+permissions:
+  contents: write
 env:
   EM_VERSION: 3.1.23
   EM_CACHE_FOLDER: 'emsdk-cache'
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
