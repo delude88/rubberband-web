@@ -24,6 +24,18 @@ jobs:
       - name: Installing
         run: |
           npm install
+      - name: List 1
+        run: ls ${EMSCRIPTEN}
+        env:
+          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}
+      - name: List 2
+        run: ls ${EMSCRIPTEN}
+        env:
+          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main
+      - name: List 3
+        run: ls ${EMSCRIPTEN}
+        env:
+          EMSCRIPTEN: ${{env.EM_CACHE_FOLDER}}/emsdk-main/emscripten
       - name: Building
         run: |
           npm run build
