@@ -56,7 +56,7 @@ set_target_properties(rubberband
         -s WASM=1 \
         -s ALLOW_MEMORY_GROWTH=1 \
         -s ERROR_ON_UNDEFINED_SYMBOLS=1 \
-        -s ENVIRONMENT='web' \
+        -s ENVIRONMENT=web \
         -s AUTO_JS_LIBRARIES=0 \
         -s FILESYSTEM=0 \
         -s ASSERTIONS=0 \
