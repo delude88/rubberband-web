@@ -1,6 +1,6 @@
 {
   "name": "rubberband-web",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": "https://github.com/delude88/rubberband-web.git",
   "author": "delude88 <tobias.hegemann@googlemail.com>",
   "license": "GPL-2.0-or-later",
@@ -60,13 +60,14 @@
     "exports-loader": "^4.0.0",
     "file-loader": "^6.2.0",
     "jest": "^29.1.2",
-    "tone": "^14.7.77",
     "ts-jest": "^29.0.3",
     "typescript": "^4.8.4",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^4.10.0",
+    "tslib": "^2.4.0",
+    "tone": "^14.7.77"
   },
-  "dependencies": {
-    "tslib": "^2.4.0"
+  "optionalDependencies": {
+    "tone": "^14.7.77"
   }
 }
