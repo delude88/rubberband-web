@@ -36,11 +36,15 @@
     "public"
   ],
   "scripts": {
-    "dev": "webpack --mode=development --watch",
-    "build": "npm run build:wasm && npm run build:worklet && npm run build:web",
-    "build:worklet": "tsc -b src/worklet/tsconfig.json && webpack --mode=production",
+    "dev": "concurrently \"npm:dev:worklet\" \"npm:dev:web\" \"npm:dev:example\"",
+    "dev:worklet": "webpack --mode=development --watch",
+    "dev:web": "tsc -b src/web/tsconfig.cjs.json src/web/tsconfig.esm.json src/web/tsconfig.esm5.json src/web/tsconfig.types.json --watch",
+    "dev:example": "webpack  -c example/webpack.config.cjs --mode=development --watch",
+    "build": "npm run build:wasm && npm run build:worklet && npm run build:web && npm run build:example",
     "build:wasm": "cd wasm && bash ./build.sh",
+    "build:worklet": "tsc -b src/worklet/tsconfig.json && webpack --mode=production",
     "build:web": "tsc -b src/web/tsconfig.cjs.json src/web/tsconfig.esm.json src/web/tsconfig.esm5.json src/web/tsconfig.types.json",
+    "build:example": "webpack --mode=development -c example/webpack.config.cjs",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "browser": {
@@ -57,15 +61,17 @@
     "@types/emscripten": "^1.39.6",
     "@types/jest": "^29.1.1",
     "babel-loader": "^8.2.5",
+    "concurrently": "^7.5.0",
     "exports-loader": "^4.0.0",
     "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
     "jest": "^29.1.2",
+    "tone": "^14.7.77",
     "ts-jest": "^29.0.3",
+    "tslib": "^2.4.0",
     "typescript": "^4.8.4",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
-    "tslib": "^2.4.0",
-    "tone": "^14.7.77"
+    "webpack-cli": "^4.10.0"
   },
   "optionalDependencies": {
     "tone": "^14.7.77"

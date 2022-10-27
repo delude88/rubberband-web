@@ -8,13 +8,14 @@ interface PitchShifterOptions {
   numSamples?: number,
   pitch?: number,
   tempo?: number
+  onReady?: (pitchShifter: PitchShifter) => void
 }
 
 class PitchShifter {
   private kernel: any
   private readonly channelCount: number
   private readonly numSamples: number
-  private readonly highQuality: boolean;
+  private readonly highQuality: boolean
   private tempo: number = 1
   private pitch: number = 1
   private inputArray: HeapArray | undefined
@@ -26,20 +27,29 @@ class PitchShifter {
     this.highQuality = options?.highQuality || false
     this.pitch = options?.pitch || 1
     this.tempo = options?.tempo || 1
-    this.init(channelCount)
+    this.init(channelCount, options?.onReady)
   }
 
-  private init(channelCount: number) {
+  public get ready(): boolean {
+    return !!this.kernel && !!this.inputArray && !!this.outputArray
+  }
+
+  private init(channelCount: number, onReady?: (pitchShifter: PitchShifter) => void) {
+    this.inputArray?.close()
+    this.outputArray?.close()
     createModule()
       .then((module: any) => {
         this.kernel = new module.RealtimeRubberBand(sampleRate, channelCount, this.highQuality)
         this.inputArray = new HeapArray(module, RENDER_QUANTUM_FRAMES, channelCount)
         this.outputArray = new HeapArray(module, RENDER_QUANTUM_FRAMES, channelCount)
-        if(this.pitch !== 1) {
+        if (this.pitch !== 1) {
           this.kernel.setPitch(this.pitch)
         }
-        if(this.tempo !== 1) {
+        if (this.tempo !== 1) {
           this.kernel.setTempo(this.tempo)
+        }
+        if (onReady) {
+          onReady(this)
         }
       })
   }
@@ -60,14 +70,30 @@ class PitchShifter {
     return this.kernel?.getSamplesAvailable() || 0
   }
 
-  public push(channels: Float32Array[]) {
+  public push(channels: Float32Array[], numSamples?: number) {
     if (this.kernel && this.inputArray) {
       const channelCount = channels.length
       if (channelCount > 0) {
-        for (let channel = 0; channel < channels.length; ++channel) {
+        for (let channel = 0; channel < channelCount; ++channel) {
           this.inputArray.getChannelArray(channel).set(channels[channel])
         }
-        this.kernel.push(this.inputArray.getHeapAddress(), this.numSamples)
+        this.kernel.push(this.inputArray.getHeapAddress(), numSamples || this.numSamples)
+      }
+    }
+  }
+
+  public pushSlice(channels: Float32Array[], start: number, end: number) {
+    if (this.kernel && this.inputArray) {
+      const len = end - start
+      if (len > this.numSamples) {
+        throw new Error(`Part is larger than number of samples: ${len} > ${this.numSamples}`)
+      }
+      const channelCount = channels.length
+      if (channelCount > 0) {
+        for (let channel = 0; channel < channelCount; ++channel) {
+          this.inputArray.getChannelArray(channel).set(channels[channel].slice(start, end))
+        }
+        this.kernel.push(this.inputArray.getHeapAddress(), len)
       }
     }
   }

@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.21)
 project(wasm)
 
-if(NOT CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
-    message(FATAL_ERROR "You need to use emscripten for this")
-endif ()
+#if(NOT CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
+#    message(FATAL_ERROR "You need to use emscripten for this")
+#endif ()
 
 set(CMAKE_CXX_STANDARD 17)
-set(OPTIMIZATION_FLAGS "-Wno-warn-absolute-paths -O3 -flto -std=c++17 --profiling")
+set(OPTIMIZATION_FLAGS "-O3 -flto -std=c++17")
+if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
+    set(OPTIMIZATION_FLAGS "${OPTIMIZATION_FLAGS} -Wno-warn-absolute-paths  --profiling")
+endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPTIMIZATION_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPTIMIZATION_FLAGS}")
-
 
 add_library(rubberbandofficial
         lib/third-party/rubberband-3.0.0/single/RubberBandSingle.cpp
@@ -21,10 +23,10 @@ target_include_directories(rubberbandofficial
 
 # Build own library containing MyClass
 add_library(rubberbandclasses
-        src/OfflineRubberBand.cpp
-        src/OfflineRubberBand.h
         src/RealtimeRubberBand.cpp
         src/RealtimeRubberBand.h
+        src/RubberBandProcessor.cpp
+        src/RubberBandProcessor.h
         )
 
 target_include_directories(rubberbandclasses
@@ -63,6 +65,31 @@ set_target_properties(rubberband
         -s MODULARIZE=1 \
         -s SINGLE_FILE=1"
         )
+
+# Just some demo testing
+add_executable(demo
+        src/main.cpp
+        )
+
+target_link_libraries(demo
+        PRIVATE
+        rubberbandclasses
+        rubberbandofficial
+        )
+
+target_compile_definitions(
+        demo
+        PUBLIC
+        HAVE_VDSP)
+
+if (APPLE)
+    message("Using VDSP on macOS")
+    target_link_libraries(
+            demo
+            PUBLIC
+            "-framework Accelerate"
+    )
+endif (APPLE)
 
 ###############################
 #
