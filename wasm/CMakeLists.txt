@@ -109,7 +109,6 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 add_executable(
         rubberband_test
-        src/OfflineRubberBand_test.cpp
         src/RealtimeRubberband_test.cpp
 )
 target_link_libraries(rubberband_test

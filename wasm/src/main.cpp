@@ -6,48 +6,45 @@
 #include "RubberBandProcessor.h"
 #include <chrono>
 const static auto kSampleRate = 44100;
+const static auto timeRatio = 2;
 
-void runTest(const float *const *source, const size_t channel_count, const size_t sample_count, bool extract) {
-
-  auto source_ptr = reinterpret_cast<uintptr_t>(source);
-
+void runTest(const float *const *input, const size_t channel_count, const size_t input_size, bool extract) {
   auto processor = new RubberBandProcessor(
       kSampleRate,
       channel_count,
-      2,
+      timeRatio,
       1
   );
-  auto result_sample_count = processor->process(source_ptr, sample_count, extract);
-
-  //auto result_ref = processor->get_processed_samples_by_reference();
-  auto result = new float *[channel_count];
+  auto output_size = processor->get_output_size(input_size);
+  /*std::cout << "Using " << (timeRatio * 100) << "% tempo results in " << output_size << " from original " << input_size
+            << " samples" << std::endl;*/
+  auto output = new float *[channel_count];
   for (size_t channel = 0; channel < channel_count; ++channel) {
-    result[channel] = new float[result_sample_count];
+    output[channel] = new float[output_size];
   }
-  processor->get_processed_samples(result);
 
+  auto input_ptr = reinterpret_cast<uintptr_t>(input);
+  auto output_ptr = reinterpret_cast<uintptr_t>(output);
+  processor->process(input_ptr, input_size, output_ptr, extract);
+
+  /*
   // Show last 5 samples of source and result
   for (size_t channel = 0; channel < channel_count; ++channel) {
-    for (size_t sample = sample_count - 5; sample < sample_count; ++sample) {
-      std::cout << "source[channel = " << channel << "][sample = " << sample << "] = " << source[channel][sample]
+    for (size_t sample = input_size - 5; sample < input_size; ++sample) {
+      std::cout << "source[channel = " << channel << "][sample = " << sample << "] = " << input[channel][sample]
                 << std::endl;
     }
   }
   std::cout << "Compare" << std::endl;
   for (size_t channel = 0; channel < channel_count; ++channel) {
     for (size_t sample = result_sample_count - 5; sample < result_sample_count; sample++) {
-      std::cout << "result[channel = " << channel << "][sample = " << sample << "] = " << result[channel][sample]
+      std::cout << "result[channel = " << channel << "][sample = " << sample << "] = " << output[channel][sample]
                 << std::endl;
-      //assert(result[channel][sample] == result_ref[channel][sample]);
     }
   }
-  std::cout << "Deleting processor" << std::endl;
+  */
   delete processor;
-  // Now this would fail
-  // std::cout << "Failing: " << result_ref[0][0] << std::endl;
-  // But you can still
-  // std::cout << "Not failing: " << result[0][0] << std::endl;
-  delete[] result;
+  delete[] output;
 }
 
 int main(int argc, char **argv) {
@@ -55,38 +52,48 @@ int main(int argc, char **argv) {
   const auto channel_count = 2;
 
   // Create demo array
-  auto unsave_source = new float *[channel_count];
+  auto source = new float *[channel_count];
   for (size_t channel = 0; channel < channel_count; ++channel) {
-    unsave_source[channel] = new float[sample_count];
+    source[channel] = new float[sample_count];
     for (size_t sample = 0; sample < sample_count; ++sample) {
-      unsave_source[channel][sample] = sample + (1000 * channel); // NOLINT(cppcoreguidelines-narrowing-conversions)
+      source[channel][sample] = sample; // NOLINT(cppcoreguidelines-narrowing-conversions)
     }
   }
-  const auto source = reinterpret_cast<const float *const *>(unsave_source);
 
-  std::cout << "Running test with shared arrays" << std::endl;
-  std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-  runTest(source, channel_count, sample_count, false);
-  std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+  auto num_iterations = 10;
+  size_t duration_sum_1 = 0;
+  size_t duration_sum_2 = 0;
+  for (int i = 0; i < num_iterations; i++) {
+    std::cout << "Running " << (i + 1) << ". time with shared arrays ...";
+    std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
+    runTest(source, channel_count, sample_count, false);
+    std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count();
+    duration_sum_1 += duration1;
+    std::cout << " done after " << duration1 << "ms" << std::endl;
 
-  std::cout << "Running test with copying arrays" << std::endl;
-  std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
-  runTest(source, channel_count, sample_count, true);
-  std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    std::cout << "Running " << (i + 1) << ". time with copying arrays ...";
+    std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
+    runTest(source, channel_count, sample_count, true);
+    std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count();
+    duration_sum_2 += duration2;
+    std::cout << " done after " << duration2 << "ms" << std::endl;
+  }
+  const auto duration_mean_1 = duration_sum_1 / num_iterations;
+  const auto duration_mean_2 = duration_sum_2 / num_iterations;
 
-  auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - begin1).count();
-  auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(end2 - begin2).count();
   auto sample_length_in_seconds = sample_count / kSampleRate;
-  std::cout << "Duration WITHOUT extracting track of " << sample_length_in_seconds << "s: " << duration1 << "ms"
+  std::cout << "Mean duration WITHOUT extracting track of " << sample_length_in_seconds << "s: " << duration_mean_1
+            << "ms"
             << std::endl;
-  std::cout << "Duration WITH extracting track of " << sample_length_in_seconds << "s: " << duration2 << "ms" << std::endl;
+  std::cout << "Mean duration WITH extracting track of " << sample_length_in_seconds << "s: " << duration_mean_2 << "ms"
+            << std::endl;
 
   delete[] source;
 
   return 0;
 }
-
-
 
 /*
 void slice(float** input, float** output, size_t num_channels, size_t start) {

@@ -1,7 +1,7 @@
-import {PitchShifter} from "./PitchShifter"
+import {RealtimeRubberBand} from "./RealtimeRubberBand"
 
-class RubberbandProcessor extends AudioWorkletProcessor {
-    private api: PitchShifter | undefined;
+class RubberBandProcessor extends AudioWorkletProcessor {
+    private api: RealtimeRubberBand | undefined;
     private running: boolean = true;
     private pitch: number = 1;
     private tempo: number = 1;
@@ -39,13 +39,13 @@ class RubberbandProcessor extends AudioWorkletProcessor {
         }
     }
 
-    getApi(channelCount: number): PitchShifter {
+    getApi(channelCount: number): RealtimeRubberBand {
         if (
             !this.api ||
             this.api.getChannelCount() !== channelCount ||
             this.api.isHighQuality() !== this.highQuality
         ) {
-            this.api = new PitchShifter(sampleRate, channelCount, {
+            this.api = new RealtimeRubberBand(sampleRate, channelCount, {
                 highQuality: this.highQuality,
                 pitch: this.pitch,
                 tempo: this.tempo
@@ -82,4 +82,4 @@ class RubberbandProcessor extends AudioWorkletProcessor {
     }
 }
 
-registerProcessor('rubberband-processor', RubberbandProcessor)
+registerProcessor('rubberband-processor', RubberBandProcessor)

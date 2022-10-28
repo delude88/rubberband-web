@@ -1,7 +1,5 @@
 /// <reference lib="webworker" />
-import { PitchShifter } from '../worklet/PitchShifter'
-
-const RENDER_QUANTUM_FRAMES = 1024
+import { processRubberBand } from './processRubberBand'
 
 type Message = {
   event: 'process' | 'error' | string
@@ -20,51 +18,47 @@ type ErrorMessage = Message & {
   error: string
 }
 
+
 onmessage = ({ data }: MessageEvent) => {
   const { event } = data as Message
 
   if (event === 'process') {
-
     const task = data as ProcessMessage
-    // Recreate the array
+    // TODO: Remove the following
     const inputChannels: Float32Array[] = []
+
+    // Recreate the array
     for (let i = 0; i < task.channels.length; i++) {
+      console.log(`task.channels[${i}].length = ${task.channels[i].length}`)
       inputChannels.push(new Float32Array(task.channels[i]))
+      console.log(`inputChannels[${i}].length = ${task.channels[i].length}`)
     }
-    console.log('Got channels', inputChannels)
     if (inputChannels.length === 0) {
       postMessage({ event: 'error', error: 'Received 0 channels' })
       return
     }
     // Create pitch shifter, register self for onReady
-    new PitchShifter(task.sampleRate, task.channels.length, {
-      numSamples: RENDER_QUANTUM_FRAMES,
+    processRubberBand({
+      input: inputChannels,
       pitch: task.pitch,
-      tempo: task.tempo,
-      highQuality: true,
-      onReady: (pitchShifter => {
-        const length = inputChannels[0].length
-        // Now process using rubber-band
-        for (let start = 0; start < length; start += RENDER_QUANTUM_FRAMES) {
-          pitchShifter.pushSlice(inputChannels, start, Math.min(length, start + RENDER_QUANTUM_FRAMES))
-        }
-
-        // Now fetch UNTIL we got all back
-
-
-        pitchShifter.push(inputChannels)
-
-        // Don't clone the array buffers, since we don't need them anymore
+      timeRatio: task.tempo,
+      sampleRate: task.sampleRate
+    })
+      .then((output) => {
+        console.info('Got final result from rubber band processor')
         const transfer: ArrayBuffer[] = []
-        for (let i = 0; i < channels.length; i++) {
-          transfer.push(channels[i].buffer)
+        for (let i = 0; i < output.length; i++) {
+          transfer.push(output[i].buffer)
         }
         postMessage({
           ...task,
           channels: transfer
         } as ProcessMessage, transfer)
       })
-    })
+      .catch(err => {
+        postMessage({ event: 'error', error: err })
+        console.error(err)
+      })
   }
 
   // postMessage(JSON.stringify([event, payload]))

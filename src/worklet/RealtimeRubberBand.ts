@@ -3,15 +3,15 @@ import HeapArray from './HeapArray'
 
 const RENDER_QUANTUM_FRAMES = 128
 
-interface PitchShifterOptions {
+interface RealtimeRubberBandOptions {
   highQuality?: boolean,
   numSamples?: number,
   pitch?: number,
   tempo?: number
-  onReady?: (pitchShifter: PitchShifter) => void
+  onReady?: (pitchShifter: RealtimeRubberBand) => void
 }
 
-class PitchShifter {
+class RealtimeRubberBand {
   private kernel: any
   private readonly channelCount: number
   private readonly numSamples: number
@@ -21,7 +21,7 @@ class PitchShifter {
   private inputArray: HeapArray | undefined
   private outputArray: HeapArray | undefined
 
-  public constructor(sampleRate: number, channelCount: number, options?: PitchShifterOptions) {
+  public constructor(sampleRate: number, channelCount: number, options?: RealtimeRubberBandOptions) {
     this.numSamples = options?.numSamples || RENDER_QUANTUM_FRAMES
     this.channelCount = channelCount
     this.highQuality = options?.highQuality || false
@@ -34,7 +34,7 @@ class PitchShifter {
     return !!this.kernel && !!this.inputArray && !!this.outputArray
   }
 
-  private init(channelCount: number, onReady?: (pitchShifter: PitchShifter) => void) {
+  private init(channelCount: number, onReady?: (pitchShifter: RealtimeRubberBand) => void) {
     this.inputArray?.close()
     this.outputArray?.close()
     createModule()
@@ -127,4 +127,4 @@ class PitchShifter {
   }
 }
 
-export { PitchShifter }
+export { RealtimeRubberBand }

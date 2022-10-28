@@ -49,17 +49,17 @@ const initUI = (fileChooser: HTMLInputElement, playButton: HTMLButtonElement, te
   const handleAudioBufferOrTempoChange = () => {
     if (context.source) {
       //if (context.tempo !== 1) {
-        // First pitch shift play buffer
-        console.info(`Processing audio buffer with tempo ${context.tempo}`)
-        worker.process(context.source, context.tempo)
-          .then(audioBuffer => {
-            console.info(`AudioBuffer length changed from ${context.source?.length} to ${audioBuffer.length} with tempo ${context.tempo * 100}%`)
-            setPlayBuffer(audioBuffer)
-            context.playBuffer = context.source
-            if (context.playing) {
-              restart()
-            }
-          })
+      // First pitch shift play buffer
+      console.info(`Processing audio buffer with tempo ${context.tempo}`)
+      worker.process(context.source, context.tempo)
+        .then(audioBuffer => {
+          console.info(`AudioBuffer length changed from ${context.source?.length} to ${audioBuffer.length} with tempo ${context.tempo * 100}%`)
+          setPlayBuffer(audioBuffer)
+          context.playBuffer = context.source
+          if (context.playing) {
+            restart()
+          }
+        })
       /*} else {
         console.info(`Skip processing audio buffer, since tempo is simply 1`)
         setPlayBuffer(context.source)

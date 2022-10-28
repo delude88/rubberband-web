@@ -16,7 +16,7 @@ class RubberBandProcessor {
 
   ~RubberBandProcessor();
 
-  [[nodiscard]] size_t get_output_size(size_t count_samples) const;
+  [[nodiscard]] size_t get_output_size(size_t input_size) const;
 
   size_t process(uintptr_t input_ptr, size_t input_size, uintptr_t output_ptr,  bool extract_input = false);
 

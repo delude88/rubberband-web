@@ -34,48 +34,14 @@ EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_RubberBandProcessor) {
-        class_<RubberBandProcessor>("RubberBandProcessor")
+    class_<RubberBandProcessor>("RubberBandProcessor")
 
-                .constructor<size_t, size_t, bool>()
+        .constructor<size_t, size_t, double, double>()
 
-                .function("pull",
-                          &RubberBandProcessor::pull,
-                          allow_raw_pointers())
+        .function("getOutputSize",
+                  &RubberBandProcessor::get_output_size)
 
-                .function("push",
-                          &RubberBandProcessor::push,
-                          allow_raw_pointers())
-
-                .function("getSamplesAvailable",
-                          &RubberBandProcessor::getSamplesAvailable);
+        .function("process",
+                  &RubberBandProcessor::process,
+                  allow_raw_pointers());
 }
-
-/*
-EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberBand) {
-    class_<OfflineRubberBand>("OfflineRubberBand")
-
-        .constructor<size_t, size_t, bool>()
-
-        .function("getVersion",
-                  &OfflineRubberBand::getVersion)
-
-        .function("setPitch",
-                  &OfflineRubberBand::setPitch)
-
-        .function("setTempo",
-                  &OfflineRubberBand::setTempo)
-
-        .function("setFormantScale",
-                  &OfflineRubberBand::setFormantScale)
-
-        .function("pull",
-                  &OfflineRubberBand::pull,
-                  allow_raw_pointers())
-
-        .function("push",
-                  &OfflineRubberBand::push,
-                  allow_raw_pointers())
-
-        .function("getSamplesAvailable",
-                  &OfflineRubberBand::getSamplesAvailable);
-}*/
