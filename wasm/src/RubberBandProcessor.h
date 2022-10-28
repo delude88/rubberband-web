@@ -16,12 +16,14 @@ class RubberBandProcessor {
 
   ~RubberBandProcessor();
 
-  void process(uintptr_t input_ptr, size_t sample_size);
+  [[nodiscard]] size_t get_output_size(size_t count_samples) const;
 
-  size_t fetch(uintptr_t output_ptr);
+  size_t process(uintptr_t input_ptr, size_t input_size, uintptr_t output_ptr,  bool extract_input = false);
 
-  [[nodiscard]] size_t samples_available() const;
  private:
+  int tryFetch(float **output, int output_write_counter);
+  static void slice(const float *const *input, const float **output, size_t num_channels, size_t start);
+  static void extract(const float *const *input, float **output, size_t num_channels, size_t start, size_t end);
 
   RubberBand::RubberBandStretcher *stretcher_;
 };
