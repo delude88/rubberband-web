@@ -6,7 +6,6 @@
 #define WASM_SRC_OFFLINERUBBERBAND_H_
 
 #include <RubberBandStretcher.h>
-#include "../lib/third-party/rubberband-3.0.0/src/common/RingBuffer.h"
 
 class OfflineRubberBand {
  public:
@@ -31,7 +30,6 @@ class OfflineRubberBand {
   static void slice(const float *const *input, const float **output, size_t num_channels, size_t start);
 
   RubberBand::RubberBandStretcher *stretcher_;
-  RubberBand::RingBuffer<float> **output_buffer_;
 };
 
 #endif //WASM_SRC_OFFLINERUBBERBAND_H_

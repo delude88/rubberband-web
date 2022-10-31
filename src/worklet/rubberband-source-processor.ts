@@ -1,95 +1,73 @@
-import {RealtimeRubberBand} from "./RealtimeRubberBand"
+import { RubberBandSource } from './RubberBandSource'
 
-class RubberBandProcessor extends AudioWorkletProcessor {
-  private api: RealtimeRubberBand | undefined;
-  private running: boolean = true;
-  private pitch: number = 1;
-  private tempo: number = 1;
-  private highQuality: boolean = false
-  private buffer?: Float32Array[]
+
+class RubberbandSourceProcessor extends AudioWorkletProcessor {
+  private readonly api: RubberBandSource
+  private running: boolean = true
+  private playing: boolean = false
 
   constructor() {
-    super();
-    this.port.onmessage = ({data}) => {
-      const {event} = data
+    super()
+    this.api = new RubberBandSource(sampleRate)
+    this.port.onmessage = ({ data }) => {
+      const { event } = data
       switch (event) {
-        case "buffer": {
-          this.setBuffer((data.buffer as Float32Array[]).map(buf => new Float32Array(buf)))
-          break;
+        case 'buffer': {
+          this.setBuffer((data.buffer as ArrayBuffer[]).map(buf => new Float32Array(buf)))
+          break
         }
-        case "pitch": {
+        case 'pitch': {
           this.setPitch(data.pitch)
-          break;
+          break
         }
-        case "quality": {
-          this.setHighQuality(data.quality)
-          break;
-        }
-        case "tempo": {
+        case 'tempo': {
           this.setTempo(data.tempo)
-          break;
+          break
         }
-        case "close": {
-          this.close();
-          break;
+        case 'play': {
+          this.playing = true
+          break
+        }
+        case 'stop': {
+          this.playing = false
+          break
+        }
+        case 'close': {
+          this.close()
+          break
         }
       }
     }
   }
 
   setPitch(pitch: number) {
-    this.pitch = pitch
-    if (this.api)
-      this.api.setPitch(this.pitch)
+    this.api.setPitchScale(pitch)
   }
 
   setTempo(tempo: number) {
-    this.tempo = tempo
-    if (this.api)
-      this.api.setTempo(this.tempo)
+    this.api.setTimeRatio(tempo)
   }
 
   setBuffer(buffer: Float32Array[]) {
-    this.buffer = buffer
-  }
-
-  setHighQuality(enabled: boolean) {
-    this.highQuality = enabled
+    this.api.setBuffer(buffer)
+      .catch((err) => {
+        // TODO: Replace by sending error to host
+        console.error(err)
+      })
   }
 
   close() {
+    this.api.close()
     this.port.onmessage = null
-    this.running = false;
+    this.running = false
   }
 
-  private prepare() {
-    if(this.buffer) {
-      this.kernel
+  process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+    if (this.api && this.playing) {
+      this.api.pull(outputs[0])
     }
+    return this.running
   }
-
-  process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-    return this.running;
-  }
-
-  private getApi(channelCount: number): RealtimeRubberBand {
-    if (
-      !this.api ||
-      this.api.getChannelCount() !== channelCount ||
-      this.api.isHighQuality() !== this.highQuality
-    ) {
-      this.api = new RealtimeRubberBand(sampleRate, channelCount, {
-        highQuality: this.highQuality,
-        pitch: this.pitch,
-        tempo: this.tempo
-      })
-      this.api.setTempo(this.tempo)
-
-      console.info("Rubberband engine version", this.api.getVersion())
-    }
-    return this.api
-  }
-
 }
 
-registerProcessor('rubberband-source-processor', RubberBandProcessor)
+registerProcessor('rubberband-source-processor', RubberbandSourceProcessor)

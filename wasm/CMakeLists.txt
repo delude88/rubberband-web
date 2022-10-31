@@ -27,6 +27,8 @@ add_library(rubberbandclasses
         src/OfflineRubberBand.h
         src/RealtimeRubberBand.cpp
         src/RealtimeRubberBand.h
+        src/RubberBandSource.cpp
+        src/RubberBandSource.h
         src/RubberBandProcessor.cpp
         src/RubberBandProcessor.h
         )

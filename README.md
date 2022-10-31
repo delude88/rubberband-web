@@ -22,12 +22,12 @@ In many cases you can also reference directly to the _node_modules/rubberband-we
 
 Then use the helper function _createRubberBandNode_ to create a worklet instance:
 ```javascript
-import { createRubberBandNode } from 'rubberband-web';
+import { createRubberBandRealtimeNode } from 'rubberband-web';
 
 const audioCtx = new AudioContext();
 const sourceNode = new AudioBufferSourceNode(audioCtx); // or any source
 
-const rubberBandNode = await createRubberBandNode(
+const rubberBandNode = await createRubberBandRealtimeNode(
           audioCtx,
           '<public path to your rubberband-processor.js copy>'
         );

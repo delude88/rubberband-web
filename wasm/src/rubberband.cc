@@ -2,6 +2,7 @@
 #include "RealtimeRubberBand.h"
 #include "OfflineRubberBand.h"
 #include "RubberBandProcessor.h"
+#include "RubberBandSource.h"
 
 using namespace emscripten;
 
@@ -78,3 +79,33 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandProcessor) {
                   &RubberBandProcessor::process,
                   allow_raw_pointers());
 }
+
+EMSCRIPTEN_BINDINGS(CLASS_RubberBandSource) {
+    class_<RubberBandSource>("RubberBandSource")
+
+        .constructor<size_t, size_t, size_t>()
+
+        .function("getSamplesAvailable",
+                  &RubberBandSource::getSamplesAvailable)
+
+        .function("getInputSize",
+                  &RubberBandSource::getInputSize)
+
+        .function("getOutputSize",
+                  &RubberBandSource::getOutputSize)
+
+        .function("setTimeRatio",
+                  &RubberBandSource::setTimeRatio)
+
+        .function("setPitchScale",
+                  &RubberBandSource::setPitchScale)
+
+        .function("setBuffer",
+                  &RubberBandSource::setBuffer,
+                  allow_raw_pointers())
+
+        .function("retrieve",
+                  &RubberBandSource::retrieve,
+                  allow_raw_pointers());
+}
+

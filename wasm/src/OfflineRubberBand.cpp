@@ -16,7 +16,6 @@ OfflineRubberBand::OfflineRubberBand(size_t sample_rate, size_t channel_count) {
 
 OfflineRubberBand::~OfflineRubberBand() {
   delete stretcher_;
-  delete output_buffer_;
 }
 
 void OfflineRubberBand::study(uintptr_t input_ptr, size_t input_size) {

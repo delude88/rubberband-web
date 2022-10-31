@@ -2,6 +2,7 @@ const path = require('path');
 
 const worklets = [
     'src/worklet/rubberband-processor.ts',
+    'src/worklet/rubberband-source-processor.ts',
     'src/worker/rubberband.worker.ts',
 ]
 

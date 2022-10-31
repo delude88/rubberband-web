@@ -4,8 +4,9 @@
 
 #include <iostream>
 #include "RubberBandProcessor.h"
-#include "OfflineRubberBand.h"
+#include "RubberBandSource.h"
 #include <chrono>
+#include <thread>
 const static auto kSampleRate = 44100;
 const static auto timeRatio = 2;
 
@@ -93,24 +94,22 @@ int main(int argc, char **argv) {
             << std::endl;
 
   // Now use the OfflineRubberBand
-  auto offline_rubber_band = new OfflineRubberBand(kSampleRate, channel_count);
+  auto rubber_band_source = new RubberBandSource(kSampleRate, channel_count);
   auto source_ptr = reinterpret_cast<uintptr_t>(source);
 
-  auto output = createOutputArray(channel_count, 1);
-  offline_rubber_band->study(source_ptr, sample_count);
-  offline_rubber_band->process(source_ptr, sample_count, true);
-  std::cout << "Have now " << offline_rubber_band->getSamplesAvailable() << std::endl;
-  //offline_rubber_band->retrieve(reinterpret_cast<uintptr_t>(output), sample_count);
+  rubber_band_source->setBuffer(source_ptr, sample_count);
 
-  offline_rubber_band->setTempo(1.2);
-  //delete[] output;
-  output = createOutputArray(channel_count, 1);
-  offline_rubber_band->study(source_ptr, sample_count);
-  offline_rubber_band->process(source_ptr, sample_count, true);
-  //offline_rubber_band->retrieve(reinterpret_cast<uintptr_t>(output), sample_count);
+  auto frame_size = 128;
+  auto output = createOutputArray(channel_count, frame_size);
+  auto output_ptr = reinterpret_cast<uintptr_t>(output);
+  for (size_t i = 0; i < rubber_band_source->getOutputSize(); i = i + frame_size) {
+    std::this_thread::sleep_for(std::chrono::seconds(1 / kSampleRate));
+    rubber_band_source->retrieve(output_ptr);
+  }
 
-  delete offline_rubber_band;
+  delete rubber_band_source;
 
+  delete[] output;
   delete[] source;
 
   return 0;
