@@ -6,30 +6,27 @@ class RubberBandProcessor extends AudioWorkletProcessor {
   private pitch: number = 1;
   private tempo: number = 1;
   private highQuality: boolean = false
-  private buffer: Float32Array[]
+  private buffer?: Float32Array[]
 
   constructor() {
     super();
-    this.port.onmessage = (e) => {
-      const data = JSON.parse(e.data)
-      const event = data[0] as string
-      const payload = data[1]
-      console.log("port.onmessage", event, payload)
+    this.port.onmessage = ({data}) => {
+      const {event} = data
       switch (event) {
+        case "buffer": {
+          this.setBuffer((data.buffer as Float32Array[]).map(buf => new Float32Array(buf)))
+          break;
+        }
         case "pitch": {
-          this.pitch = payload
-          if (this.api)
-            this.api.setPitch(this.pitch)
+          this.setPitch(data.pitch)
           break;
         }
         case "quality": {
-          this.highQuality = payload
+          this.setHighQuality(data.quality)
           break;
         }
         case "tempo": {
-          this.tempo = payload
-          if (this.api)
-            this.api.setTempo(this.tempo)
+          this.setTempo(data.tempo)
           break;
         }
         case "close": {
@@ -40,7 +37,42 @@ class RubberBandProcessor extends AudioWorkletProcessor {
     }
   }
 
-  getApi(channelCount: number): RealtimeRubberBand {
+  setPitch(pitch: number) {
+    this.pitch = pitch
+    if (this.api)
+      this.api.setPitch(this.pitch)
+  }
+
+  setTempo(tempo: number) {
+    this.tempo = tempo
+    if (this.api)
+      this.api.setTempo(this.tempo)
+  }
+
+  setBuffer(buffer: Float32Array[]) {
+    this.buffer = buffer
+  }
+
+  setHighQuality(enabled: boolean) {
+    this.highQuality = enabled
+  }
+
+  close() {
+    this.port.onmessage = null
+    this.running = false;
+  }
+
+  private prepare() {
+    if(this.buffer) {
+      this.kernel
+    }
+  }
+
+  process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+    return this.running;
+  }
+
+  private getApi(channelCount: number): RealtimeRubberBand {
     if (
       !this.api ||
       this.api.getChannelCount() !== channelCount ||
@@ -58,33 +90,6 @@ class RubberBandProcessor extends AudioWorkletProcessor {
     return this.api
   }
 
-  setBuffer(buffer: Float32Array[]) {
-
-  }
-
-  close() {
-    this.port.onmessage = null
-    this.running = false;
-  }
-
-  process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-    const numChannels = inputs[0]?.length || outputs[0]?.length
-    if (numChannels > 0) {
-      const api = this.getApi(numChannels)
-
-      if (inputs?.length > 0) {
-        api.push(inputs[0])
-      }
-
-      if (outputs?.length > 0) {
-        const outputLength = outputs[0][0].length
-        if (api.samplesAvailable >= outputLength) {
-          api.pull(outputs[0])
-        }
-      }
-    }
-    return this.running;
-  }
 }
 
 registerProcessor('rubberband-source-processor', RubberBandProcessor)

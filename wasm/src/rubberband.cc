@@ -1,5 +1,6 @@
 #include "emscripten/bind.h"
 #include "RealtimeRubberBand.h"
+#include "OfflineRubberBand.h"
 #include "RubberBandProcessor.h"
 
 using namespace emscripten;
@@ -32,6 +33,38 @@ EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
         .function("getSamplesAvailable",
                   &RealtimeRubberBand::getSamplesAvailable);
 }
+
+EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberBand) {
+    class_<OfflineRubberBand>("OfflineRubberBand")
+
+        .constructor<size_t, size_t>()
+
+        .function("setTempo",
+                  &OfflineRubberBand::setTempo)
+
+        .function("setPitch",
+                  &OfflineRubberBand::setPitch)
+
+        .function("study",
+                  &OfflineRubberBand::study,
+                  allow_raw_pointers())
+
+        .function("process",
+                  &OfflineRubberBand::process,
+                  allow_raw_pointers())
+
+        .function("processSlice",
+                  &OfflineRubberBand::processSlice,
+                  allow_raw_pointers())
+
+        .function("retrieve",
+                  &OfflineRubberBand::retrieve,
+                  allow_raw_pointers())
+
+        .function("getSamplesAvailable",
+                  &OfflineRubberBand::getSamplesAvailable);
+}
+
 
 EMSCRIPTEN_BINDINGS(CLASS_RubberBandProcessor) {
     class_<RubberBandProcessor>("RubberBandProcessor")

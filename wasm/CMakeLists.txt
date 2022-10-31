@@ -23,6 +23,8 @@ target_include_directories(rubberbandofficial
 
 # Build own library containing MyClass
 add_library(rubberbandclasses
+        src/OfflineRubberBand.cpp
+        src/OfflineRubberBand.h
         src/RealtimeRubberBand.cpp
         src/RealtimeRubberBand.h
         src/RubberBandProcessor.cpp

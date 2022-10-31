@@ -32,6 +32,10 @@ class HeapArray {
     this.ready = true
   }
 
+  public getLength() : number {
+    return this.length
+  }
+
   public close() {
     this.ready = false
     this.module._free(this.dataPtr)
