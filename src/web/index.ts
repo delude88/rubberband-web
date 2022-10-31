@@ -1,4 +1,5 @@
 export { createRubberBandNode } from "./createRubberBandNode"
+export { createRubberBandSourceNode } from "./createRubberBandSourceNode"
 export { createRubberBandWorker } from "./createRubberBandWorker"
 export { createRubberBandNodeForToneJS } from "./createRubberBandNodeForToneJS"
 export {RubberBandNode} from "./RubberbandNode"

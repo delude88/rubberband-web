@@ -3,6 +3,7 @@
 //
 
 #include "RubberBandProcessor.h"
+#include <iostream>
 
 const RubberBand::RubberBandStretcher::Options kOption = RubberBand::RubberBandStretcher::OptionProcessOffline
     | RubberBand::RubberBandStretcher::OptionPitchHighConsistency
@@ -46,6 +47,7 @@ size_t RubberBandProcessor::process(uintptr_t input_ptr,
   auto sub_array_ptr = new const float *;
 
   // Study
+  std::cout << "Studying " << input_size << " samples" << std::endl;
   for (size_t i = 0; i < input_size; i += block_size) {
     auto len = std::min(input_size - i, block_size);
     auto finish = i + block_size > input_size;
@@ -59,6 +61,7 @@ size_t RubberBandProcessor::process(uintptr_t input_ptr,
   }
 
   // And process
+  std::cout << "Processing " << input_size << " samples " << " with block size of " << block_size << std::endl;
   int output_write_counter = 0;
   for (size_t i = 0; i < input_size; i += block_size) {
     // Extract slice
@@ -74,12 +77,16 @@ size_t RubberBandProcessor::process(uintptr_t input_ptr,
     // Retrieve
     output_write_counter = tryFetch(output_arr, output_write_counter);
   }
+  std::cout << "Reading last samples of result" << std::endl;
   do {
     output_write_counter = tryFetch(output_arr, output_write_counter);
   } while (output_write_counter < output_size);
+
+  std::cout << "Cleaning up" << std::endl;
   delete[] sub_array;
   delete sub_array_ptr;
 
+  std::cout << "Returning output size of " << output_size << std::endl;
   return output_size;
 }
 

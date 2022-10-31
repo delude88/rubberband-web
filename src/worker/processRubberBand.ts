@@ -45,7 +45,7 @@ const processRubberBand = async ({
   }
 
   console.info("Start processing")
-  kernel.process(inputArray.getHeapAddress(), inputSize, outputArray.getHeapAddress(), true);
+  kernel.process(inputArray.getHeapAddress(), inputSize, outputArray.getHeapAddress(), false);
   console.info("Finished processing")
 
   // Now feed new Float32Array with content of outputArray
