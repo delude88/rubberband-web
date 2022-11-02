@@ -26,6 +26,7 @@ class RubberBandSource {
 
   int getSamplesAvailable();
 
+  void reset();
  private:
   void restart();
   void process(size_t sample_size);

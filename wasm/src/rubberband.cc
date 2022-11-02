@@ -100,6 +100,9 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandSource) {
         .function("setPitchScale",
                   &RubberBandSource::setPitchScale)
 
+        .function("reset",
+                  &RubberBandSource::reset)
+
         .function("setBuffer",
                   &RubberBandSource::setBuffer,
                   allow_raw_pointers())

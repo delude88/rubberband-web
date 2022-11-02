@@ -1,4 +1,4 @@
-import { RubberbandWorker } from './RubberbandWorker'
+import { PitchShiftWorker } from './PitchShiftWorker'
 
 type Message = {
   event: 'process' | 'error' | string
@@ -24,7 +24,7 @@ const cloneArrayBuffer = (source: ArrayBuffer): ArrayBuffer => {
   return dest
 }
 
-const createRubberBandWorker = (url: string | URL): RubberbandWorker => {
+const createPitchShiftWorker = (url: string | URL): PitchShiftWorker => {
   const worker = new Worker(url) as any
   worker.process = (audioBuffer: AudioBuffer, tempo: number, pitch: number = 1): Promise<AudioBuffer> => {
     return new Promise<AudioBuffer>((resolve, reject) => {
@@ -83,7 +83,7 @@ const createRubberBandWorker = (url: string | URL): RubberbandWorker => {
       }
     })
   }
-  return worker as RubberbandWorker
+  return worker as PitchShiftWorker
 }
 
-export { createRubberBandWorker }
+export { createPitchShiftWorker }

@@ -1,6 +1,6 @@
 import {RealtimeRubberBand} from "./RealtimeRubberBand"
 
-class RubberBandProcessor extends AudioWorkletProcessor {
+class PitchShiftRealtimeProcessor extends AudioWorkletProcessor {
     private api: RealtimeRubberBand | undefined;
     private running: boolean = true;
     private pitch: number = 1;
@@ -82,4 +82,4 @@ class RubberBandProcessor extends AudioWorkletProcessor {
     }
 }
 
-registerProcessor('rubberband-processor', RubberBandProcessor)
+registerProcessor('pitch-shift-realtime-processor', PitchShiftRealtimeProcessor)

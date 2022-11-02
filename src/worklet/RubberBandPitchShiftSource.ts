@@ -1,9 +1,10 @@
 import HeapArray from './HeapArray'
 import * as createModule from '../../wasm/build/rubberband.js'
+import { PitchShiftSource } from './PitchShiftSource'
 
 const RENDER_QUANTUM_FRAMES = 128
 
-class RubberBandSource {
+class RubberBandPitchShiftSource implements PitchShiftSource {
   private module: EmscriptenModule | undefined
   private kernel: any | undefined
   private readonly frameSize: number
@@ -11,12 +12,8 @@ class RubberBandSource {
   private timeRatio: number = 1
   private inputArray: HeapArray | undefined
   private outputArray: HeapArray | undefined
-  private playPosition: number = 0
-  private endPosition: number = 0
-  private playing: boolean = false
   private ready: boolean = false
   public onReadyChanged?: (ready: boolean) => void
-
 
   public constructor(sampleRate: number, options?: {
     pitchScale?: number,
@@ -49,24 +46,25 @@ class RubberBandSource {
     return this.ready
   }
 
-  public async setBuffer(buffer: Float32Array[]) {
+  public setBuffer(buffer: Float32Array[]) {
     this.setReady(false)
     this.kernel?.close()
     this.inputArray?.close()
     this.outputArray?.close()
     if (buffer.length > 0) {
-      this.endPosition = buffer[0].length
-      const module = await this.getModule()
-      this.kernel = new (module as any).RubberBandSource(sampleRate, buffer.length, RENDER_QUANTUM_FRAMES * 8)
-      this.kernel.setPitchScale(this.pitchScale)
-      this.kernel.setTimeRatio(this.timeRatio)
-      this.inputArray = new HeapArray(module, this.endPosition, buffer.length)
-      for (let channel = 0; channel < buffer.length; ++channel) {
-        this.inputArray.getChannelArray(channel).set(buffer[channel])
-      }
-      this.outputArray = new HeapArray(module, this.frameSize, buffer.length)
-      this.kernel.setBuffer(this.inputArray.getHeapAddress(), this.inputArray.getLength())
-      this.setReady(true)
+      this.getModule()
+        .then(module => {
+          this.kernel = new (module as any).RubberBandSource(sampleRate, buffer.length, RENDER_QUANTUM_FRAMES * 8)
+          this.kernel.setPitchScale(this.pitchScale)
+          this.kernel.setTimeRatio(this.timeRatio)
+          this.inputArray = new HeapArray(module, buffer[0].length, buffer.length)
+          for (let channel = 0; channel < buffer.length; ++channel) {
+            this.inputArray.getChannelArray(channel).set(buffer[channel])
+          }
+          this.outputArray = new HeapArray(module, this.frameSize, buffer.length)
+          this.kernel.setBuffer(this.inputArray.getHeapAddress(), this.inputArray.getLength())
+          this.setReady(true)
+        })
     } else {
       this.kernel = undefined
       this.inputArray = undefined
@@ -84,17 +82,9 @@ class RubberBandSource {
     this.kernel?.setPitchScale(this.pitchScale)
   }
 
-  public start() {
-    this.playing = true
-  }
-
-  public stop() {
-    this.playing = false
-  }
-
   public pull(channels: Float32Array[]): void {
-    if (this.kernel && this.outputArray && this.playing && this.playPosition < this.endPosition) {
-      this.kernel.retrieve(this.outputArray.getHeapAddress(), this.frameSize)
+    if (this.kernel && this.outputArray) {
+      this.kernel.retrieve(this.outputArray.getHeapAddress())
       for (let channel = 0; channel < channels.length; ++channel) {
         channels[channel].set(this.outputArray.getChannelArray(channel))
       }
@@ -113,6 +103,10 @@ class RubberBandSource {
   public get samplesAvailable(): number {
     return this.kernel?.getSamplesAvailable() || 0
   }
+
+  reset(): void {
+    this.kernel?.restart();
+  }
 }
 
-export { RubberBandSource }
+export { RubberBandPitchShiftSource }

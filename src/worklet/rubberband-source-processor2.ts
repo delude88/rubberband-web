@@ -1,14 +1,13 @@
-import { RubberBandSource } from './RubberBandSource'
+import { RubberBandPitchShiftSource } from './RubberBandPitchShiftSource'
 
 
 class RubberbandSourceProcessor extends AudioWorkletProcessor {
-  private readonly api: RubberBandSource
+  private readonly api: RubberBandPitchShiftSource
   private running: boolean = true
-  private playing: boolean = false
 
   constructor() {
     super()
-    this.api = new RubberBandSource(sampleRate)
+    this.api = new RubberBandPitchShiftSource(sampleRate)
     this.port.onmessage = ({ data }) => {
       const { event } = data
       switch (event) {
@@ -24,12 +23,10 @@ class RubberbandSourceProcessor extends AudioWorkletProcessor {
           this.setTempo(data.tempo)
           break
         }
-        case 'play': {
-          this.playing = true
+        case 'start': {
           break
         }
         case 'stop': {
-          this.playing = false
           break
         }
         case 'close': {
@@ -50,10 +47,6 @@ class RubberbandSourceProcessor extends AudioWorkletProcessor {
 
   setBuffer(buffer: Float32Array[]) {
     this.api.setBuffer(buffer)
-      .catch((err) => {
-        // TODO: Replace by sending error to host
-        console.error(err)
-      })
   }
 
   close() {
@@ -63,7 +56,7 @@ class RubberbandSourceProcessor extends AudioWorkletProcessor {
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-    if (this.api && this.playing) {
+    if (this.api) {
       this.api.pull(outputs[0])
     }
     return this.running

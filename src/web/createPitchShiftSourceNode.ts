@@ -1,7 +1,7 @@
-import { RubberBandSourceNode } from './RubberBandSourceNode'
+import { PitchShiftSourceNode } from './PitchShiftSourceNode'
 
-function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): RubberBandSourceNode {
-  const node = new AudioWorkletNode(context, 'rubberband-source-processor', options) as any
+function createWorkletAsSourceNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): PitchShiftSourceNode {
+  const node = new AudioWorkletNode(context, 'pitch-shift-source-processor', options) as any
   node.setBuffer = (buffer: AudioBuffer) => {
     const transfer: ArrayBuffer[] = []
     for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
@@ -27,15 +27,17 @@ function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWor
   }
   let startTimeout: any
   node.start = (when?: number) => {
-    if(startTimeout) {
+    if (startTimeout) {
       clearTimeout(startTimeout)
     }
-    if(!when || when <= context.currentTime) {
+    if (!when || when <= context.currentTime) {
+      console.info('Start directly')
       node.port.postMessage({
         event: 'start'
       })
     } else {
       startTimeout = setTimeout(() => {
+        console.info('Start in ' + (context.currentTime - when) * 1000 + 'ms')
         node.port.postMessage({
           event: 'start'
         })
@@ -44,10 +46,10 @@ function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWor
   }
   let stopTimeout: any
   node.stop = (when?: number) => {
-    if(stopTimeout) {
+    if (stopTimeout) {
       clearTimeout(stopTimeout)
     }
-    if(!when || when <= context.currentTime) {
+    if (!when || when <= context.currentTime) {
       node.port.postMessage({
         event: 'stop'
       })
@@ -70,22 +72,22 @@ function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWor
       event: 'close'
     })
   }
-  console.info("Created RubberBandSourceNode")
-  return node as RubberBandSourceNode
+  console.info('Created a new RubberBandSourceNode')
+  return node as PitchShiftSourceNode
 }
 
-async function createRubberBandSourceNode(
+async function createPitchShiftSourceNode(
   context: BaseAudioContext,
   url: string,
   options?: AudioWorkletNodeOptions
-): Promise<RubberBandSourceNode> {
+): Promise<PitchShiftSourceNode> {
   // ensure audioWorklet has been loaded
   try {
-    return createWorkletAsRubberNode(context, options)
+    return createWorkletAsSourceNode(context, options)
   } catch (err) {
     await context.audioWorklet.addModule(url)
-    return createWorkletAsRubberNode(context, options)
+    return createWorkletAsSourceNode(context, options)
   }
 }
 
-export { createRubberBandSourceNode }
+export { createPitchShiftSourceNode }

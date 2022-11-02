@@ -3,7 +3,7 @@ import HeapArray from '../worklet/HeapArray'
 
 let module: any | undefined
 
-const processRubberBand = async ({
+const pitchShift = async ({
                          input,
                          sampleRate,
                          timeRatio,
@@ -58,4 +58,4 @@ const processRubberBand = async ({
   return output
 }
 
-export { processRubberBand }
+export { pitchShift }

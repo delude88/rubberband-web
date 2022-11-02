@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { processRubberBand } from './processRubberBand'
+import { pitchShift } from './pitchShift'
 
 type Message = {
   event: 'process' | 'error' | string
@@ -17,7 +17,6 @@ type ErrorMessage = Message & {
   event: 'error',
   error: string
 }
-
 
 onmessage = ({ data }: MessageEvent) => {
   const { event } = data as Message
@@ -38,7 +37,7 @@ onmessage = ({ data }: MessageEvent) => {
       return
     }
     // Create pitch shifter, register self for onReady
-    processRubberBand({
+    pitchShift({
       input: inputChannels,
       pitch: task.pitch,
       timeRatio: task.tempo,

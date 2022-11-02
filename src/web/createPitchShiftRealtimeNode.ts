@@ -1,7 +1,7 @@
-import {RubberBandRealtimeNode} from "./RubberBandRealtimeNode";
+import {PitchShiftRealtimeNode} from "./PitchShiftRealtimeNode";
 
-function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): RubberBandRealtimeNode {
-    const node = new AudioWorkletNode(context, "rubberband-processor", options) as any
+function createWorkletAsRealtimeNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): PitchShiftRealtimeNode {
+    const node = new AudioWorkletNode(context, "pitch-shift-realtime-processor", options) as any
     node.setPitch = (pitch: number) => {
         node.port.postMessage(JSON.stringify(["pitch", pitch]));
     }
@@ -14,21 +14,21 @@ function createWorkletAsRubberNode(context: BaseAudioContext, options?: AudioWor
     node.close = () => {
         node.port.postMessage(JSON.stringify(["close"]));
     }
-    return node as RubberBandRealtimeNode
+    return node as PitchShiftRealtimeNode
 }
 
-async function createRubberBandRealtimeNode(
+async function createPitchShiftRealtimeNode(
     context: BaseAudioContext,
     url: string,
     options?: AudioWorkletNodeOptions
-): Promise<RubberBandRealtimeNode> {
+): Promise<PitchShiftRealtimeNode> {
     // ensure audioWorklet has been loaded
     try {
-        return createWorkletAsRubberNode(context, options);
+        return createWorkletAsRealtimeNode(context, options);
     } catch (err) {
         await context.audioWorklet.addModule(url)
-        return createWorkletAsRubberNode(context, options);
+        return createWorkletAsRealtimeNode(context, options);
     }
 }
 
-export {createRubberBandRealtimeNode}
+export {createPitchShiftRealtimeNode}

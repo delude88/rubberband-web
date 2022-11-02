@@ -70,6 +70,11 @@ size_t RubberBandSource::retrieve(uintptr_t output_ptr) {
   return received;
 }
 
+void RubberBandSource::reset() {
+  stretcher_->reset();
+  restart();
+}
+
 void RubberBandSource::restart() {
   pre_process_position_ = 0;
   play_position_ = 0;
