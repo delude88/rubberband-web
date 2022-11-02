@@ -6,24 +6,35 @@
 #define RUBBERBAND_WEB_RUBBERBANDPROCESSOR_H
 
 #include <RubberBandStretcher.h>
+#include "../lib/third-party/rubberband-3.0.0/src/common/RingBuffer.h"
+#include <queue>
 
 class RubberBandProcessor {
  public:
   RubberBandProcessor(size_t sample_rate,
-                      size_t channels,
+                      size_t channel_count,
                       double time_ratio = 1.0,
                       double pitch_scale = 1.0);
 
   ~RubberBandProcessor();
 
-  [[nodiscard]] size_t get_output_size(size_t input_size) const;
+  size_t setBuffer(uintptr_t input_ptr, size_t input_size);
 
-  size_t process(uintptr_t input_ptr, size_t input_size, uintptr_t output_ptr,  bool extract_input = false);
+  [[nodiscard]] size_t getOutputSize() const;
+
+  size_t retrieve(uintptr_t output_ptr, size_t output_size);
 
  private:
-  int tryFetch(float **output, int output_write_counter);
-  static void slice(const float *const *input, const float **output, size_t num_channels, size_t start);
-  static void extract(const float *const *input, float **output, size_t num_channels, size_t start, size_t end);
+  void tryFetch();
+
+  float **input_;
+  size_t input_size_ = 0;
+  size_t input_processed_counter_ = 0;
+  float **output_;
+  size_t output_size_ = 0;
+  size_t output_fetched_counter_ = 0;
+
+  float** scratch_;
 
   RubberBand::RubberBandStretcher *stretcher_;
 };

@@ -1,5 +1,6 @@
-
 export interface PitchShiftSource {
+  onInit?: () => void;
+
   setTimeRatio(timeRatio: number): void
 
   setPitchScale(pitchScale: number): void

@@ -6,27 +6,28 @@
 #define WASM_SRC_RUBBERBANDSOURCE_H_
 
 #include <RubberBandStretcher.h>
+#include "PitchShiftSource.h"
 
-class RubberBandSource {
+class RubberBandSource : PitchShiftSource {
  public:
   explicit RubberBandSource(size_t sample_rate, size_t channel_count, size_t pre_process_size = kRenderQuantumFrames * 8);
-  ~RubberBandSource();
+  ~RubberBandSource() override;
 
-  void setTimeRatio(double time_ratio);
+  void setTimeRatio(double time_ratio) override;
 
-  void setPitchScale(double pitch_scale);
+  void setPitchScale(double pitch_scale) override;
 
-  void setBuffer(uintptr_t input_ptr, size_t input_size);
+  void setBuffer(uintptr_t input_ptr, size_t input_size) override;
 
-  size_t retrieve(uintptr_t output_ptr);
+  size_t retrieve(uintptr_t output_ptr) override;
 
-  [[nodiscard]] size_t getInputSize() const;
+  [[nodiscard]] size_t getInputSize() const override;
 
-  [[nodiscard]] size_t getOutputSize() const;
+  [[nodiscard]] size_t getOutputSize() const override;
 
-  int getSamplesAvailable();
+  size_t getSamplesAvailable() override;
 
-  void reset();
+  void reset() override;
  private:
   void restart();
   void process(size_t sample_size);

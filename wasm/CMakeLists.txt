@@ -23,14 +23,15 @@ target_include_directories(rubberbandofficial
 
 # Build own library containing MyClass
 add_library(rubberbandclasses
-        src/OfflineRubberBand.cpp
-        src/OfflineRubberBand.h
         src/RealtimeRubberBand.cpp
         src/RealtimeRubberBand.h
         src/RubberBandSource.cpp
         src/RubberBandSource.h
         src/RubberBandProcessor.cpp
         src/RubberBandProcessor.h
+        src/PitchShiftSource.h
+        src/RubberBandAPI.cpp
+        src/RubberBandAPI.h
         )
 
 target_include_directories(rubberbandclasses
@@ -87,7 +88,7 @@ target_compile_definitions(
         HAVE_VDSP)
 
 if (APPLE)
-    message("Using VDSP on macOS")
+    message(INFO "Using VDSP on macOS")
     target_link_libraries(
             demo
             PUBLIC

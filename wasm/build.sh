@@ -30,8 +30,6 @@ fi
 mkdir -p build
 
 # Now build
-pushd build || exit
-  emcmake cmake ..
-  echo "Building project ..."
-  emmake make
-popd || exit
+emcmake cmake -B build -S .
+echo "Building project ..."
+cmake --build build --target rubberband

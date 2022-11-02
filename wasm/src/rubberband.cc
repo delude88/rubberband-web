@@ -1,8 +1,8 @@
 #include "emscripten/bind.h"
 #include "RealtimeRubberBand.h"
-#include "OfflineRubberBand.h"
 #include "RubberBandProcessor.h"
 #include "RubberBandSource.h"
+#include "RubberBandAPI.h"
 
 using namespace emscripten;
 
@@ -35,48 +35,20 @@ EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
                   &RealtimeRubberBand::getSamplesAvailable);
 }
 
-EMSCRIPTEN_BINDINGS(CLASS_OfflineRubberBand) {
-    class_<OfflineRubberBand>("OfflineRubberBand")
-
-        .constructor<size_t, size_t>()
-
-        .function("setTempo",
-                  &OfflineRubberBand::setTempo)
-
-        .function("setPitch",
-                  &OfflineRubberBand::setPitch)
-
-        .function("study",
-                  &OfflineRubberBand::study,
-                  allow_raw_pointers())
-
-        .function("process",
-                  &OfflineRubberBand::process,
-                  allow_raw_pointers())
-
-        .function("processSlice",
-                  &OfflineRubberBand::processSlice,
-                  allow_raw_pointers())
-
-        .function("retrieve",
-                  &OfflineRubberBand::retrieve,
-                  allow_raw_pointers())
-
-        .function("getSamplesAvailable",
-                  &OfflineRubberBand::getSamplesAvailable);
-}
-
-
 EMSCRIPTEN_BINDINGS(CLASS_RubberBandProcessor) {
     class_<RubberBandProcessor>("RubberBandProcessor")
 
         .constructor<size_t, size_t, double, double>()
 
         .function("getOutputSize",
-                  &RubberBandProcessor::get_output_size)
+                  &RubberBandProcessor::getOutputSize)
 
-        .function("process",
-                  &RubberBandProcessor::process,
+        .function("setBuffer",
+                  &RubberBandProcessor::setBuffer,
+                  allow_raw_pointers())
+
+        .function("retrieve",
+                  &RubberBandProcessor::retrieve,
                   allow_raw_pointers());
 }
 
@@ -112,3 +84,24 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandSource) {
                   allow_raw_pointers());
 }
 
+
+EMSCRIPTEN_BINDINGS(CLASS_RubberBandAPI) {
+    class_<RubberBandAPI>("RubberBandAPI")
+
+        .constructor<size_t, size_t, double, double>()
+
+        .function("study",
+                  &RubberBandAPI::study,
+                  allow_raw_pointers())
+
+        .function("process",
+                  &RubberBandAPI::process,
+                  allow_raw_pointers())
+
+        .function("retrieve",
+                  &RubberBandAPI::retrieve,
+                  allow_raw_pointers())
+
+        .function("available",
+                  &RubberBandAPI::available);
+}

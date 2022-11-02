@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "RubberBandProcessor.h"
-#include "RubberBandSource.h"
+#include "RubberBandAPI.h"
 #include <chrono>
 #include <thread>
 const static auto kSampleRate = 44100;
@@ -22,15 +22,17 @@ void runTest(const float *const *input, const size_t channel_count, const size_t
   auto processor = new RubberBandProcessor(
       kSampleRate,
       channel_count,
-      timeRatio,
+      0.4,
       1
   );
-  auto output_size = processor->get_output_size(input_size);
+  std::cout << "setBuffer" << std::endl;
+  processor->setBuffer((uintptr_t) input, input_size);
+
+  auto output_size = processor->getOutputSize();
   auto output = createOutputArray(channel_count, output_size);
 
-  auto input_ptr = reinterpret_cast<uintptr_t>(input);
-  auto output_ptr = reinterpret_cast<uintptr_t>(output);
-  processor->process(input_ptr, input_size, output_ptr, extract);
+  std::cout << "retrieve" << std::endl;
+  processor->retrieve(reinterpret_cast<uintptr_t>(output), output_size);
   /*
   // Show last 5 samples of source and result
   for (size_t channel = 0; channel < channel_count; ++channel) {
@@ -93,21 +95,59 @@ int main(int argc, char **argv) {
   std::cout << "Mean duration WITH extracting track of " << sample_length_in_seconds << "s: " << duration_mean_2 << "ms"
             << std::endl;
 
-  // Now use the OfflineRubberBand
-  auto rubber_band_source = new RubberBandSource(kSampleRate, channel_count);
-  auto source_ptr = reinterpret_cast<uintptr_t>(source);
-
-  rubber_band_source->setBuffer(source_ptr, sample_count);
-
-  auto frame_size = 128;
+  const auto frame_size = 128;
   auto output = createOutputArray(channel_count, frame_size);
-  auto output_ptr = reinterpret_cast<uintptr_t>(output);
+
+  // Now use the RubberBandSource
+  /*
+  std::cout << "RubberBandSource" << std::endl;
+  auto rubber_band_source = new RubberBandSource(kSampleRate, channel_count);
+
+  rubber_band_source->setBuffer(reinterpret_cast<uintptr_t>(source), sample_count);
+
   for (size_t i = 0; i < rubber_band_source->getOutputSize(); i = i + frame_size) {
     std::this_thread::sleep_for(std::chrono::seconds(1 / kSampleRate));
-    rubber_band_source->retrieve(output_ptr);
+    rubber_band_source->retrieve(reinterpret_cast<uintptr_t>(output));
   }
 
-  delete rubber_band_source;
+  delete rubber_band_source;*/
+
+  // Now use the RubberBandAPI
+  std::cout << "RubberBandAPI" << std::endl;
+  auto rubber_band_api = new RubberBandAPI(kSampleRate, channel_count, 1, 1, frame_size);
+
+  std::cout << "RubberBandAPI > study" << std::endl;
+  rubber_band_api->study(reinterpret_cast<uintptr_t>(source), sample_count, true);
+
+  std::cout << "RubberBandAPI > process" << std::endl;
+  for (size_t frame = 0; frame < sample_count; frame = frame + frame_size) {
+    for (size_t channel = 0; channel < channel_count; ++channel) {
+      for (size_t sample = 0; sample < frame_size; ++sample) {
+        output[channel][sample] = source[channel][frame + sample];
+      }
+    }
+    auto final = frame + frame_size == sample_count;
+    rubber_band_api->process(reinterpret_cast<uintptr_t>(output), frame_size, final);
+    if (rubber_band_api->available() > 0) {
+      rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
+    }
+  }
+  size_t available = rubber_band_api->available();
+  std::cout << "Still got " << available << std::endl;
+  rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
+  available = rubber_band_api->available();
+  std::cout << "Still got " << available << std::endl;
+  /*while(available > 0) {
+    std::cout << "Still got " << available << std::endl;
+    rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
+    available = rubber_band_api->available();
+  }*/
+  /*while (available > 0) {
+    rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
+    available = rubber_band_api->available();
+  }*/
+
+  delete rubber_band_api;
 
   delete[] output;
   delete[] source;
