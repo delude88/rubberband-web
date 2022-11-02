@@ -1,156 +1,175 @@
-import { createPitchShiftRealtimeNode, createPitchShiftSourceNode, createPitchShiftWorker, PitchShiftSourceNode } from './../..'
+import {
+  createPitchShiftSourceNode,
+  createPitchShiftWorker,
+  PitchShiftSourceNode
+} from './../..'
 
 const audioContext = new AudioContext()
-const worker = createPitchShiftWorker('../../public/rubberband.worker.js')
+const worker = createPitchShiftWorker('../../public/pitch-shift.worker.js')
 
-const initUI = (useWorkerChooser: HTMLInputElement, fileChooser: HTMLInputElement, playButton: HTMLButtonElement, tempoChooser: HTMLInputElement) => {
-  const context: {
-    source?: AudioBuffer,
-    tempo: number
-    playBuffer?: AudioBuffer,
-    playNode?: AudioScheduledSourceNode
-    playing: boolean
-    useWorker: boolean
-  } = {
-    tempo: 1,
-    playing: false,
-    useWorker: false
+class Core {
+  private source?: AudioBuffer
+  private tempo: number = 1
+  private playBuffer?: AudioBuffer
+  private playNode?: AudioScheduledSourceNode
+  private playing: boolean = false
+  private useWorker: boolean = false
+  public onLoaded?: () => void
+  public onUnloaded?: () => void
+  public onStarted?: () => void
+  public onStopped?: () => void
+
+  public get isPlaying(): boolean {
+    return this.playing
   }
 
-  const stop = () => {
-    console.info("stop")
-    if (context.playNode) {
-      context.playNode.stop()
-      context.playNode.disconnect()
-      context.playing = false
-      playButton.textContent = 'Play'
+  stop = () => {
+    console.info('stop')
+    if (this.playNode) {
+      this.playNode.stop()
+      this.playNode.disconnect()
+      this.playing = false
+      if (this.onStopped) {
+        this.onStopped()
+      }
     }
   }
 
-  const restart = async () => {
-    console.info("restart")
-    if (context.playBuffer) {
+  restart = async () => {
+    console.info('restart')
+    if (this.playBuffer) {
       stop()
-      if (context.useWorker) {
+      if (this.useWorker) {
         const playNode = audioContext.createBufferSource()
-        playNode.buffer = context.playBuffer
-        context.playNode = playNode
+        playNode.buffer = this.playBuffer
+        this.playNode = playNode
       } else {
-        const playNode = await createPitchShiftSourceNode(audioContext, '../../public/rubberband-source-processor.js')
-        playNode.setBuffer(context.playBuffer)
-        context.playNode = playNode
+        const playNode = await createPitchShiftSourceNode(audioContext, '../../public/pitch-shift-source-processor.js')
+        playNode.setBuffer(this.playBuffer)
+        this.playNode = playNode
       }
-      if (context.playNode) {
-        context.playNode.connect(audioContext.destination)
-        context.playNode.start()
-        context.playing = true
-        playButton.textContent = 'Stop'
-      }
-    }
-  }
-
-  const setPlayBuffer = (audioBuffer: AudioBuffer) => {
-    console.info("setPlayBuffer")
-    context.playBuffer = audioBuffer
-    if (context.playing) {
-      restart()
-    }
-  }
-
-  const setTempo = (tempo: number) => {
-    console.info("setTempo")
-    context.tempo = tempo
-    if (context.useWorker) {
-      if (context.source) {
-        // (Re)process whole audio buffer
-        worker.process(context.source, context.tempo)
-          .then(audioBuffer => {
-            console.info(`AudioBuffer length changed from ${context.source?.length} to ${audioBuffer.length} with tempo ${context.tempo * 100}%`)
-            setPlayBuffer(audioBuffer)
-          })
-      }
-    } else {
-      if(context.playNode) {
-        // Just replace the audio buffer
-        (context.playNode as PitchShiftSourceNode).setTempo(tempo)
-      }
-    }
-  }
-
-  const setAudioBuffer = async (buffer?: AudioBuffer) => {
-    console.info("setAudioBuffer")
-    context.source = buffer
-    if (context.source) {
-      if (context.useWorker) {
-        await worker.process(context.source, context.tempo)
-          .then(audioBuffer => {
-            console.info(`AudioBuffer length changed from ${context.source?.length} to ${audioBuffer.length} with tempo ${context.tempo * 100}%`)
-            setPlayBuffer(audioBuffer)
-          })
-      } else {
-        setPlayBuffer(context.source)
-      }
-      playButton.disabled = false
-    } else {
-      playButton.disabled = true
-    }
-  }
-
-  const setWorkerEnabled = async (enabled: boolean) => {
-    if (context.useWorker !== enabled) {
-      context.useWorker = enabled
-      await setAudioBuffer(context.source)
-    }
-  }
-
-  playButton.onclick = () => {
-    void audioContext.resume()
-    if (context.playing) {
-      stop()
-    } else {
-      restart()
-        .catch(err => console.error(err))
-    }
-  }
-
-
-
-  useWorkerChooser.onchange = () => {
-    setWorkerEnabled(useWorkerChooser.checked)
-      .catch(err => console.error(err))
-  }
-
-  tempoChooser.onchange = () => {
-    setTempo(Number.parseFloat(tempoChooser.value))
-  }
-
-  fileChooser.onchange = () => {
-    if (fileChooser.files) {
-      const file = fileChooser.files[0]
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target?.result && typeof event.target.result === 'object') {
-          audioContext.decodeAudioData(event.target.result)
-            .then(audioBuffer => setAudioBuffer(audioBuffer)
-            )
-            .catch(err => console.error(err))
+      if (this.playNode) {
+        this.playNode.connect(audioContext.destination)
+        this.playNode.start()
+        this.playing = true
+        if (this.onStarted) {
+          this.onStarted()
         }
       }
-      reader.readAsArrayBuffer(file)
-    } else {
-      playButton.disabled = true
+      return audioContext.resume()
     }
   }
 
-  playButton.disabled = true
-}
+  setPlayBuffer = async (audioBuffer: AudioBuffer) => {
+    console.info('setPlayBuffer')
+    this.playBuffer = audioBuffer
+    if(this.onLoaded) {
+      this.onLoaded()
+    }
+    if (this.playing) {
+      await this.restart()
+    }
+  }
 
+  setTempo = (tempo: number) => {
+    console.info('setTempo')
+    this.tempo = tempo
+    if (this.useWorker) {
+      if (this.source) {
+        // (Re)process whole audio buffer
+        worker.process(this.source, this.tempo)
+          .then(audioBuffer => this.setPlayBuffer(audioBuffer))
+      }
+    } else {
+      if (this.playNode) {
+        // Just replace the audio buffer
+        (this.playNode as PitchShiftSourceNode).setTempo(tempo)
+      }
+    }
+  }
+
+  setAudioBuffer = async (buffer?: AudioBuffer) => {
+    console.info('setAudioBuffer')
+    this.source = buffer
+    if (this.source) {
+      if (this.useWorker) {
+        await worker.process(this.source, this.tempo)
+          .then(audioBuffer => this.setPlayBuffer(audioBuffer))
+      } else {
+        await this.setPlayBuffer(this.source)
+      }
+    } else {
+      if(this.onUnloaded) {
+        this.onUnloaded()
+      }
+    }
+  }
+
+  setWorkerEnabled = async (enabled: boolean) => {
+    if (this.useWorker !== enabled) {
+      this.useWorker = enabled
+      await this.setAudioBuffer(this.source)
+    }
+  }
+}
 
 const useWorkerChooser = document.getElementById('worker') as HTMLInputElement
 const fileChooser = document.getElementById('file') as HTMLInputElement
 const playButton = document.getElementById('play') as HTMLButtonElement
 const tempoChooser = document.getElementById('tempo') as HTMLInputElement
 
-if (fileChooser && playButton) {
-  initUI(useWorkerChooser, fileChooser, playButton, tempoChooser)
+const core = new Core()
+
+core.onStarted = () => {
+  playButton.textContent = "Stop"
 }
+
+core.onStopped = () => {
+  playButton.textContent = "Play"
+}
+
+core.onLoaded = () => {
+  playButton.disabled = false
+}
+
+core.onUnloaded = () => {
+  playButton.disabled = true
+}
+
+playButton.onclick = () => {
+  if (core.isPlaying) {
+    core.stop()
+  } else {
+    core.restart()
+      .catch(err => console.error(err))
+  }
+}
+
+useWorkerChooser.onchange = () => {
+  core.setWorkerEnabled(useWorkerChooser.checked)
+    .catch(err => console.error(err))
+}
+
+tempoChooser.onchange = () => {
+  core.setTempo(Number.parseFloat(tempoChooser.value))
+}
+
+fileChooser.onchange = () => {
+  if (fileChooser.files) {
+    const file = fileChooser.files[0]
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (event.target?.result && typeof event.target.result === 'object') {
+        audioContext.decodeAudioData(event.target.result)
+          .then(audioBuffer => core.setAudioBuffer(audioBuffer)
+          )
+          .catch(err => console.error(err))
+      }
+    }
+    reader.readAsArrayBuffer(file)
+  } else {
+    playButton.disabled = true
+  }
+}
+
+playButton.disabled = true
