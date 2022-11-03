@@ -13,7 +13,8 @@ class RubberBandAPI {
   RubberBandAPI(size_t sample_rate,
                 size_t channel_count,
                 double time_ratio = 1,
-                double pitch_scale = 1);
+                double pitch_scale = 1,
+                size_t sample_size = kSampleSize);
   ~RubberBandAPI();
 
   void study(uintptr_t input_ptr, size_t input_size, bool final);
@@ -28,8 +29,9 @@ class RubberBandAPI {
 
   void setMaxProcessSize(size_t size) const;
 
-
  private:
+  bool validate(const float *const *input, size_t input_size);
+
   RubberBand::RubberBandStretcher *stretcher_;
 
   static const size_t kSampleSize = 128;

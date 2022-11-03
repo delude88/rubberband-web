@@ -5,6 +5,7 @@
 #include <iostream>
 #include "RubberBandProcessor.h"
 #include "RubberBandAPI.h"
+#include "RubberBandFinal.h"
 #include <chrono>
 #include <thread>
 const static auto kSampleRate = 44100;
@@ -53,7 +54,7 @@ void runTest(const float *const *input, const size_t channel_count, const size_t
 }
 
 int main(int argc, char **argv) {
-  const auto sample_count = 80000;
+  const auto sample_count = 800000;
   const auto channel_count = 2;
 
   // Create demo array
@@ -99,58 +100,93 @@ int main(int argc, char **argv) {
   auto output = createOutputArray(channel_count, frame_size);
 
   // Now use the RubberBandSource
-  /*
-  std::cout << "RubberBandSource" << std::endl;
-  auto rubber_band_source = new RubberBandSource(kSampleRate, channel_count);
+  std::cout << "RubberBandFinal" << std::endl;
+  auto rubber_band_final = new RubberBandFinal(kSampleRate, channel_count, sample_count, 1, 1);
 
-  rubber_band_source->setBuffer(reinterpret_cast<uintptr_t>(source), sample_count);
+  std::cout << "RubberBandFinal > push" << std::endl;
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+  auto some_buffer = new float *[channel_count];
+  for (size_t f = 0; f < sample_count; f += frame_size) {
+    for (size_t c = 0; c < channel_count; c++) {
+      some_buffer[c] = source[c] + f;
+    }
+    rubber_band_final->push(reinterpret_cast<uintptr_t>(some_buffer), frame_size);
+  }
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+  std::cout << "RubberBandFinal > push required " << duration << "ms" << std::endl;
 
-  for (size_t i = 0; i < rubber_band_source->getOutputSize(); i = i + frame_size) {
-    std::this_thread::sleep_for(std::chrono::seconds(1 / kSampleRate));
-    rubber_band_source->retrieve(reinterpret_cast<uintptr_t>(output));
+  std::cout << "RubberBandFinal > pull" << std::endl;
+  for (size_t f = 0; f < sample_count; f += frame_size) {
+    rubber_band_final->pull(reinterpret_cast<uintptr_t>(some_buffer), frame_size);
   }
 
-  delete rubber_band_source;*/
+  delete rubber_band_final;
 
   // Now use the RubberBandAPI
   std::cout << "RubberBandAPI" << std::endl;
   auto rubber_band_api = new RubberBandAPI(kSampleRate, channel_count, 1, 1, frame_size);
 
   std::cout << "RubberBandAPI > study" << std::endl;
-  rubber_band_api->study(reinterpret_cast<uintptr_t>(source), sample_count, true);
-
-  std::cout << "RubberBandAPI > process" << std::endl;
-  for (size_t frame = 0; frame < sample_count; frame = frame + frame_size) {
-    for (size_t channel = 0; channel < channel_count; ++channel) {
-      for (size_t sample = 0; sample < frame_size; ++sample) {
-        output[channel][sample] = source[channel][frame + sample];
-      }
+  auto study_buffer = new float *[channel_count];
+  for (size_t f = 0; f < sample_count; f += frame_size) {
+    for (size_t c = 0; c < channel_count; c++) {
+      study_buffer[c] = source[c] + f;
     }
-    auto final = frame + frame_size == sample_count;
-    rubber_band_api->process(reinterpret_cast<uintptr_t>(output), frame_size, final);
-    if (rubber_band_api->available() > 0) {
-      rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
-    }
+    rubber_band_api->study(reinterpret_cast<uintptr_t>(study_buffer), frame_size, f + frame_size >= sample_count);
   }
-  size_t available = rubber_band_api->available();
-  std::cout << "Still got " << available << std::endl;
-  rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
-  available = rubber_band_api->available();
-  std::cout << "Still got " << available << std::endl;
-  /*while(available > 0) {
-    std::cout << "Still got " << available << std::endl;
-    rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
-    available = rubber_band_api->available();
-  }*/
-  /*while (available > 0) {
-    rubber_band_api->retrieve(reinterpret_cast<uintptr_t>(output), frame_size);
-    available = rubber_band_api->available();
-  }*/
+
+  for (size_t f = 0; f < sample_count; f += frame_size) {
+    for (size_t c = 0; c < channel_count; c++) {
+      study_buffer[c] = source[c] + f;
+    }
+    rubber_band_api->study(reinterpret_cast<uintptr_t>(study_buffer), frame_size, f + frame_size >= sample_count);
+  }
 
   delete rubber_band_api;
 
   delete[] output;
   delete[] source;
+
+  // Small experiment
+  auto array = new float *[2];
+  for (size_t c = 0; c < 2; c++) {
+    array[c] = new float[6];
+    for (size_t i = 0; i < 6; i++) {
+      array[c][i] = 6 - i + (c * 6);
+    }
+    // Now channel 1 is 6 - 1 and channel 2 is 12 - 6
+  }
+  // Question: is retrieve() filtering
+  auto extract = [](const float *const *array, size_t size) {
+    for (size_t c = 0; c < 2; c++) {
+      for (size_t i = 0; i < size; i++) {
+        std::cout << array[c][i] << ",";
+      }
+    }
+    std::cout << std::endl;
+  };
+  std::cout << "extract(array, 2): ";
+  extract(array, 2);
+
+  auto subArray = new const float *;
+  for (size_t c = 0; c < 2; c++) {
+    subArray[c] = array[c] + 2;
+  }
+  std::cout << "extract(subArray (+2), 2): ";
+  extract(subArray, 2);
+
+  std::cout << "extract(subArray (+2), 3): ";
+  extract(subArray, 3);
+
+  for (size_t c = 0; c < 2; c++) {
+    subArray[c] = array[c] + 4;
+  }
+  std::cout << "extract(subArray (+4), 2): ";
+  extract(subArray, 2);
+
+  std::cout << "extract(array, 6): ";
+  extract(array, 6);
 
   return 0;
 }

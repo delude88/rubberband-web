@@ -32,6 +32,8 @@ add_library(rubberbandclasses
         src/PitchShiftSource.h
         src/RubberBandAPI.cpp
         src/RubberBandAPI.h
+        src/RubberBandFinal.cpp
+        src/RubberBandFinal.h
         )
 
 target_include_directories(rubberbandclasses

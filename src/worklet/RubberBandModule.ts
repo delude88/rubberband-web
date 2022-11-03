@@ -25,6 +25,15 @@ export interface RubberBandProcessor {
 }
 
 
+export interface RubberBandFinal {
+  new(sampleRate: number, channelCount: number, sampleCount: number, timeRatio: number, pitchScale: number): RubberBandFinal;
+
+  push(heapAddress: number, size: number): number
+
+  pull(heapAddress: number, size: number): boolean
+}
+
+
 export interface RealtimeRubberBand {
   new(sampleRate: number, channelCount: number, highQuality: boolean): RealtimeRubberBand;
 
@@ -41,4 +50,5 @@ export interface RubberBandModule extends EmscriptenModule {
   RubberBandAPI: RubberBandAPI
   RealtimeRubberBand: RealtimeRubberBand
   RubberBandProcessor: RubberBandProcessor
+  RubberBandFinal: RubberBandFinal
 }

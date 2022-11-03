@@ -3,6 +3,7 @@
 #include "RubberBandProcessor.h"
 #include "RubberBandSource.h"
 #include "RubberBandAPI.h"
+#include "RubberBandFinal.h"
 
 using namespace emscripten;
 
@@ -84,7 +85,6 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandSource) {
                   allow_raw_pointers());
 }
 
-
 EMSCRIPTEN_BINDINGS(CLASS_RubberBandAPI) {
     class_<RubberBandAPI>("RubberBandAPI")
 
@@ -115,18 +115,13 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandAPI) {
 EMSCRIPTEN_BINDINGS(CLASS_RubberBandFinal) {
     class_<RubberBandFinal>("RubberBandFinal")
 
-        .constructor<size_t, size_t, double, double>()
+        .constructor<size_t, size_t, size_t, double, double>()
 
-        .function("study",
-                  &RubberRubberBandFinalBandAPI::study,
-                  allow_raw_pointers())
-
-        .function("process",
-                  &RubberBandFinal::process,
+        .function("push",
+                  &RubberBandFinal::push,
                   allow_raw_pointers())
 
         .function("pull",
                   &RubberBandFinal::pull,
-                  allow_raw_pointers())
-;
+                  allow_raw_pointers());
 }
