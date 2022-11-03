@@ -9,7 +9,11 @@ const RubberBand::RubberBandStretcher::Options kOptions = RubberBand::RubberBand
     RubberBand::RubberBandStretcher::OptionPitchHighConsistency |
     RubberBand::RubberBandStretcher::OptionEngineFiner;
 
-RubberBandAPI::RubberBandAPI(size_t sample_rate, size_t channel_count, double time_ratio, double pitch_scale, size_t sample_size) {
+RubberBandAPI::RubberBandAPI(size_t sample_rate,
+                             size_t channel_count,
+                             double time_ratio,
+                             double pitch_scale,
+                             size_t sample_size) {
   stretcher_ = new RubberBand::RubberBandStretcher(sample_rate, channel_count, kOptions);
   stretcher_->setTimeRatio(time_ratio);
   stretcher_->setPitchScale(pitch_scale);
@@ -33,6 +37,13 @@ size_t RubberBandAPI::retrieve(uintptr_t output_ptr, size_t output_size) {
                               output_size);  //TODO: Or std::min(stretcher_->available(), output_size) ?
 }
 
+size_t RubberBandAPI::getSamplesRequired() const {
+  return stretcher_->getSamplesRequired();
+}
+
 size_t RubberBandAPI::available() const {
   return stretcher_->available();
+}
+void RubberBandAPI::setMaxProcessSize(size_t size) const {
+  stretcher_->setMaxProcessSize(size);
 }

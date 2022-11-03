@@ -11,64 +11,98 @@ class RubberBandSource implements PitchShiftSource {
   private kernel?: RubberBandAPI
   private pitchScale: number = 1
   private timeRatio: number = 1
-  private counter: number = 0
+  private processCounter: number = 0
+  private retrieveCounter: number = 0
   private endPos: number = 0
   private buffer?: Float32Array[]
-  private inputArray?: HeapArray
-  private outputArray?: HeapArray
+  private inputBuffer?: HeapArray
+  private outputBuffer?: HeapArray
 
   constructor(module: RubberBandModule) {
     this.module = module
   }
 
   private study(): void {
-    // Process next samples
-    if (this.kernel && this.buffer && this.inputArray) {
+    if (this.kernel && this.buffer && this.buffer.length > 0) {
       const channelCount = this.buffer.length
-      const frameSize = this.inputArray.getLength()
-      for (let pos = 0; pos < this.endPos; pos += frameSize) {
-        const start = pos
-        const end = Math.min(pos + frameSize, this.endPos)
-        for (let channel = 0; channel < channelCount; ++channel) {
-          this.inputArray.getChannelArray(channel).set(this.buffer[channel].slice(start, end))
+      const sampleSize = this.buffer[0].length
+      const inputArray = new HeapArray(this.module, sampleSize, channelCount)
+      for (let channel = 0; channel < channelCount; ++channel) {
+        for (let s = 0; s < sampleSize; s++) {
+          inputArray.getChannelArray(channel)[s] = this.buffer[channel][s]
         }
-        this.kernel.study(this.inputArray.getHeapAddress(), end - start, end >= this.endPos)
+        //inputArray.getChannelArray(channel).set(this.buffer[channel])
+      }
+      this.kernel.study(inputArray.getHeapAddress(), sampleSize, true)
+      inputArray.close()
+    }
+  }
+
+  private processRequiredSamples() {
+    if (this.kernel && this.inputBuffer && this.buffer) {
+      const channelCount = this.buffer.length
+      let samplesRequired = this.kernel.getSamplesRequired()
+      const start = this.processCounter
+      const end = this.processCounter + samplesRequired
+      while (samplesRequired > 0) {
+        for (let channel = 0; channel < channelCount; ++channel) {
+          for (let s = 0; s < samplesRequired; s++) {
+            this.inputBuffer.getChannelArray(channel)[s] = this.buffer[channel][this.processCounter + s]
+          }
+          //this.inputBuffer.getChannelArray(channel).set(this.buffer[channel].subarray(start, end))
+        }
+        const final = this.processCounter + samplesRequired >= this.buffer.length
+        console.info(`process(#, ${samplesRequired}, ${final}) using start=${start} and end=${end}`)
+        this.kernel.process(this.inputBuffer.getHeapAddress(), samplesRequired, final)
+        this.processCounter += samplesRequired
+        samplesRequired = this.kernel.getSamplesRequired()
       }
     }
   }
 
   private process(start: number): number {
     // Process next samples
-    if (this.kernel && this.buffer && this.inputArray && start <= this.endPos) {
-      const frameSize = this.inputArray.getLength()
+    if (this.kernel && this.buffer && this.inputBuffer && start <= this.endPos) {
+      const frameSize = this.inputBuffer.getLength()
       const channelCount = this.buffer.length
       const end = Math.min(start + frameSize, this.endPos)
+      const length = end - start
       for (let channel = 0; channel < channelCount; ++channel) {
-        this.inputArray.getChannelArray(channel).set(this.buffer[channel].slice(start, end))
+        /*for (let s = 0; s < length; s++) {
+          this.inputBuffer.getChannelArray(channel)[s] = this.buffer[channel][start + s]
+        }*/
+        this.inputBuffer.getChannelArray(channel).set(this.buffer[channel].slice(start, end))
       }
-      const size = end - start
-      console.info(`process(${this.inputArray.getHeapAddress()}, ${size}, ${end >= this.endPos}) using start=${start} and end=${end}`)
-      this.kernel.process(this.inputArray.getHeapAddress(), size, end >= this.endPos)
-      return size
+      console.info(`process(${this.inputBuffer.getHeapAddress()}, ${length}, ${end >= this.endPos}) using start=${start} and end=${end}`)
+      this.kernel.process(this.inputBuffer.getHeapAddress(), length, end >= this.endPos)
+      console.info(`Got ${this.kernel.getSamplesRequired()} samples required and ${this.kernel.available()} available`)
+      return length
     }
     return 0
   }
 
   pull(channels: Float32Array[]): void {
-    if (this.kernel && this.outputArray && this.counter < this.endPos) {
-      const sampleCount = this.kernel.retrieve(this.outputArray.getHeapAddress(), channels[0].length)
-
-      if (sampleCount) {
-        for (let channel = 0; channel < channels.length; ++channel) {
-          channels[channel].set(this.outputArray.getChannelArray(channel))
-        }
-        this.process(this.counter + PRE_BUFFER_SIZE)
-
-        if (this.counter === 0 || this.counter % (128 * 10) === 0) {
-          console.log(`[PitchShiftMockup] Pulled ${this.counter} samples`)
-        }
+    if (this.kernel && this.outputBuffer && this.retrieveCounter < this.endPos) {
+      if(true) {
+        return
       }
-      this.counter += sampleCount
+
+      this.processRequiredSamples()
+      const length = Math.min(this.kernel.available(), channels[0].length)
+      if (length > 0) {
+        const sampleCount = this.kernel.retrieve(this.outputBuffer.getHeapAddress(), length)
+        if (sampleCount > 0) {
+          for (let channel = 0; channel < channels.length; ++channel) {
+            for (let s = 0; s < sampleCount; s++) {
+              channels[channel][s] = this.outputBuffer.getChannelArray(channel)[s]
+            }
+            //channels[channel].set(this.outputArray.getChannelArray(channel))
+          }
+
+          console.log(`[PitchShiftMockup] Pulled ${this.retrieveCounter} samples`)
+        }
+        this.retrieveCounter += sampleCount
+      }
     }
   }
 
@@ -78,22 +112,20 @@ class RubberBandSource implements PitchShiftSource {
       console.info(`Restarting`)
       const channelCount = this.buffer.length
       this.endPos = channelCount > 0 ? this.buffer[0].length : 0
-      this.inputArray = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
-      this.outputArray = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
+      this.inputBuffer = new HeapArray(this.module, PRE_BUFFER_SIZE, channelCount)
+      this.outputBuffer = new HeapArray(this.module, PRE_BUFFER_SIZE, channelCount)
       this.kernel = new this.module.RubberBandAPI(sampleRate, channelCount, this.timeRatio, this.pitchScale)
       console.info('Studying')
       this.study()
-      console.info(`Processing first ${PRE_BUFFER_SIZE} samples`)
-      let processedSamples = 0
-      do {
-        processedSamples += this.process(this.counter + processedSamples)
-      } while (processedSamples < PRE_BUFFER_SIZE)
+
+      this.processRequiredSamples()
+
       console.info(`Finished restarting`)
     } else {
       this.endPos = 0
       this.kernel = undefined
-      this.inputArray = undefined
-      this.outputArray = undefined
+      this.inputBuffer = undefined
+      this.outputBuffer = undefined
     }
   }
 

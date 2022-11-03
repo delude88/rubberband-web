@@ -8,6 +8,10 @@ export interface RubberBandAPI {
   retrieve(heapAddress: number, size: number): number
 
   available(): number;
+
+  getSamplesRequired(): number
+
+  setMaxProcessSize(size: number): void
 }
 
 export interface RubberBandProcessor {

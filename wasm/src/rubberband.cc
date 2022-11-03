@@ -103,5 +103,30 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandAPI) {
                   allow_raw_pointers())
 
         .function("available",
-                  &RubberBandAPI::available);
+                  &RubberBandAPI::available)
+
+        .function("getSamplesRequired",
+                  &RubberBandAPI::getSamplesRequired)
+
+        .function("setMaxProcessSize",
+                  &RubberBandAPI::setMaxProcessSize);
+}
+
+EMSCRIPTEN_BINDINGS(CLASS_RubberBandFinal) {
+    class_<RubberBandFinal>("RubberBandFinal")
+
+        .constructor<size_t, size_t, double, double>()
+
+        .function("study",
+                  &RubberRubberBandFinalBandAPI::study,
+                  allow_raw_pointers())
+
+        .function("process",
+                  &RubberBandFinal::process,
+                  allow_raw_pointers())
+
+        .function("pull",
+                  &RubberBandFinal::pull,
+                  allow_raw_pointers())
+;
 }
