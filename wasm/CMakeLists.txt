@@ -34,6 +34,8 @@ add_library(rubberbandclasses
         src/rubberband/RubberBandAPI.h
         src/rubberband/RubberBandFinal.cpp
         src/rubberband/RubberBandFinal.h
+        src/test/Test.cpp
+        src/test/Test.h
         )
 
 target_include_directories(rubberbandclasses

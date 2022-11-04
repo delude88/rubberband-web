@@ -47,6 +47,14 @@ export interface RealtimeRubberBand {
 export interface Test {
   new(factor: number): Test;
 
+  getFactor(): number
+
+  setFactor(factor: number): void
+
+  getUlp(): number
+
+  setUlp(ulp: number): void
+
   push(heapAddress: number, size: number): boolean
 
   pull(heapAddress: number, size: number): number

@@ -43,12 +43,9 @@ void RubberBandFinal::push(uintptr_t input_ptr, size_t input_size) {
   // Build up internal array since final is signaled
   for (size_t channel = 0; channel < stretcher_->getChannelCount(); ++channel) {
     for (size_t sample = 0; sample < input_size; ++sample) {
-      std::cout << "input_[" << channel << "][" << input_write_pos_ + sample << "] = input[" << channel << "]["
-                << sample << "]" << std::endl;
       //TODO: THIS WILL BREAK:
       auto value = input[channel][sample];
       // END OF TODO
-      std::cout << " = " << std::to_string(value) << std::endl;
       input_[channel][input_write_pos_ + sample] = value;
     }
   }

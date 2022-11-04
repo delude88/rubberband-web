@@ -85,7 +85,6 @@ void RubberBandSource::process(size_t sample_size) {
   if(samples_left <= sample_size) {
     real_sample_size = samples_left;
     finish = true;
-    std::cout << "Reached end of input sample" << std::endl;
   }
   for (size_t channel = 0; channel < channel_count; ++channel) {
     for (int sample = 0; sample < real_sample_size; ++sample) {

@@ -6,7 +6,7 @@
 #define WASM_SRC_RUBBERBANDSOURCE_H_
 
 #include <RubberBandStretcher.h>
-#include "PitchShiftSource.h"
+#include "../PitchShiftSource.h"
 
 class RubberBandSource : PitchShiftSource {
  public:

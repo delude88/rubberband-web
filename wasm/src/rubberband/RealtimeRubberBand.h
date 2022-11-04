@@ -6,7 +6,7 @@
 #define RUBBERBAND_WEB_SRC_REALTIME_RUBBERBAND_H_
 
 #include <RubberBandStretcher.h>
-#include "../lib/third-party/rubberband-3.0.0/src/common/RingBuffer.h"
+#include "../../lib/third-party/rubberband-3.0.0/src/common/RingBuffer.h"
 
 class RealtimeRubberBand {
  public:

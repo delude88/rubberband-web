@@ -128,9 +128,21 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandFinal) {
 }
 
 EMSCRIPTEN_BINDINGS(CLASS_Test) {
-    class_<Test>("RubberBandFinal")
+    class_<Test>("Test")
 
-        .constructor<>()
+        .constructor<float>()
+
+        .function("getFactor",
+                  &Test::getFactor)
+
+        .function("setFactor",
+                  &Test::setFactor)
+
+        .function("getEpsilon",
+                  &Test::getEpsilon)
+
+        .function("setEpsilon",
+                  &Test::setEpsilon)
 
         .function("push",
                   &Test::push,

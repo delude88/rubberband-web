@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "allowJs": true,
+    "moduleResolution": "node",
+    "stripInternal": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "lib": [
+      "esnext",
+      "dom"
+    ],
+    "target": "esnext",
+    "module": "esnext",
+    "baseUrl": "."
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.tsx"
+  ],
+  "exclude": [
+    "./src/**/*.js",
+    "./src/**/*.jsx",
+    "./wasm/**/*.js",
+    "./wasm/**/*.jsx"
+  ]
+}

@@ -1,67 +1,89 @@
 import { PitchShiftSource } from './PitchShiftSource'
-import HeapArray from './HeapArray'
-import { RubberBandFinal, RubberBandModule } from './RubberBandModule'
+import { RubberBandAPI, RubberBandModule } from './RubberBandModule'
+import { HeapFloat32Array } from './HeapFloat32Array'
+import { HeapAudioBuffer } from './HeapAudioBuffer'
 
 const RENDER_QUANTUM_FRAMES = 128
 
 class RubberBandSource implements PitchShiftSource {
   private readonly module: RubberBandModule
-  private kernel?: RubberBandFinal
+  private readonly frameSize: number
   private pitchScale: number = 1
   private timeRatio: number = 1
+  private kernel?: RubberBandAPI
   private buffer?: Float32Array[]
-  private result: Float32Array[] = []
-  private inputBuffer?: HeapArray
-  private outputBuffer?: HeapArray
+  private result?: Float32Array[]
+  private inputArray?: HeapAudioBuffer
+  private outputArray?: HeapAudioBuffer
+  private processCounter: number = 0
+  private outputWriteCounter: number = 0
+  private outputReadCounter: number = 0
 
-  private inputProcessPointer: number = 0
-  private outputWritePointer: number = 0
-  private outputReadPointer: number = 0
-
-  constructor(module: RubberBandModule) {
+  constructor(module: RubberBandModule, frameSize: number = RENDER_QUANTUM_FRAMES) {
     this.module = module
+    this.frameSize = frameSize
   }
 
-  private prepare() {
-    if (this.buffer && this.buffer.length > 0) {
-      console.log('PREPARE')
+  private fetch() {
+    console.time("fetch")
+    if (this.kernel && this.outputArray && this.buffer && this.result) {
       const channelCount = this.buffer.length
-      const sampleCount = this.buffer[0].length
-      this.kernel = new this.module.RubberBandFinal(sampleRate, channelCount, sampleCount, this.timeRatio, this.pitchScale)
-
-      //TODO:  Check input array itself
-      this.inputBuffer = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
-      this.outputBuffer = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
-
-      // Study all
-      console.time('Study')
-      const inputArray = new Float32Array(this.module.HEAPF32.buffer, 0, RENDER_QUANTUM_FRAMES * 2)
-      const outputArray = new Float32Array(this.module.HEAPF32.buffer, RENDER_QUANTUM_FRAMES * 2 * Float32Array.BYTES_PER_ELEMENT, RENDER_QUANTUM_FRAMES)
-      let counter = 0
-      for (let frame = 0; frame < sampleCount; frame += RENDER_QUANTUM_FRAMES) {
-        const length = Math.min(sampleCount - frame, RENDER_QUANTUM_FRAMES)
-        const end = frame + length
-
-        for (let c = 0; c < channelCount; c++) {
-          //inputArray.set(this.buffer[c].subarray(frame, end))
-          inputArray.set(this.buffer[c].slice(frame, end))
+      let available = this.kernel.available()
+      while (available > 0) {
+        const actual = this.kernel.retrieve(this.outputArray.ptr, available)
+        for (let c = 0; c < channelCount; ++c) {
+          this.result[c].set(this.outputArray.readChannel(c))
         }
-        console.log(`this.kernel.push(${this.inputBuffer.getHeapAddress()}, ${length}) am now at ${frame} of ${sampleCount}`)
-        this.kernel.push(inputArray.byteOffset, length)
-        counter += length
+        this.outputWriteCounter += actual
+        this.fetch()
+        available = this.kernel.getSamplesRequired()
       }
-      console.timeEnd('Study')
+    }
+    console.timeEnd("fetch")
+  }
+
+  private process() {
+    console.time("process")
+    if (this.kernel && this.inputArray && this.buffer && this.buffer.length > 0) {
+      const sampleSize = this.buffer[0].length
+      let samples = this.kernel.getSamplesRequired()
+      while (samples > 0) {
+        this.kernel.process(this.inputArray.getOffsetPtr(this.processCounter), samples, this.processCounter + samples > sampleSize)
+        this.processCounter += samples
+        this.fetch()
+        samples = this.kernel.getSamplesRequired()
+      }
+    }
+    this.fetch()
+    console.timeEnd("process")
+  }
+
+  private prepare(): void {
+    if (this.buffer && this.buffer.length > 0) {
+      this.inputArray?.close()
+      this.outputArray?.close()
+
+      const channelCount = this.buffer.length
+      const sampleSize = this.buffer[0].length
+      this.kernel = new this.module.RubberBandAPI(sampleRate, channelCount, this.timeRatio, this.pitchScale)
+
+      this.inputArray = new HeapAudioBuffer(this.module, sampleSize, channelCount)
+      this.outputArray = new HeapAudioBuffer(this.module, 8064, channelCount)
+
+      for (let c = 0; c < channelCount; ++c) {
+        this.inputArray.writeChannel(c, this.buffer[c])
+      }
+
+      console.log('Studying')
+      this.kernel.study(this.inputArray.ptr, this.inputArray.size, true)
+      console.log(`Studied ${channelCount} channels with ${this.inputArray.size} samples each`)
+
+      this.process();
     }
   }
 
   pull(channels: Float32Array[]): void {
-    if (this.outputWritePointer - this.outputReadPointer > RENDER_QUANTUM_FRAMES) {
-      // Enough
-      for (let c = 0; c < channels.length; c++) {
-        channels[c].set(this.result[c].slice(this.outputReadPointer, RENDER_QUANTUM_FRAMES))
-      }
-      this.outputReadPointer += RENDER_QUANTUM_FRAMES
-    }
+
   }
 
   setBuffer(buffer: Float32Array[]): void {
@@ -77,7 +99,7 @@ class RubberBandSource implements PitchShiftSource {
 
   setTimeRatio(timeRatio: number): void {
     console.log(`[PitchShiftMockup] Set time ratio to ${timeRatio}`)
-    this.pitchScale = timeRatio
+    this.timeRatio = timeRatio
     this.prepare()
   }
 

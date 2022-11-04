@@ -33,7 +33,6 @@ size_t RubberBandProcessor::setBuffer(uintptr_t input_ptr, size_t input_size) {
 
   auto channel_count = stretcher_->getChannelCount();
 
-  std::cout << "Parse input" << std::endl;
   input_ = reinterpret_cast<float **>(input_ptr);
   for (int channel = 0; channel < channel_count; ++channel) {
     output_[channel] = new float[output_size_];

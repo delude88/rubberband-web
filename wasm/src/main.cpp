@@ -8,6 +8,8 @@
 #include "rubberband/RubberBandProcessor.h"
 #include "rubberband/RubberBandAPI.h"
 #include "rubberband/RubberBandFinal.h"
+#include "test/Test.h"
+
 const static auto kSampleRate = 44100;
 const static auto timeRatio = 2;
 
@@ -147,6 +149,28 @@ int main(int argc, char **argv) {
 
   delete[] output;
   delete[] source;
+
+  // Test
+  auto test = new Test(2);
+
+  if(test->compare(0.1249984, 0.1249985)) {
+    std::cerr << "OJ NOOOOO" << std::endl;
+  }
+
+  if(!test->compare(0.12499833106994628906, 0.12499836087226867676f)) {
+    std::cerr << "OJ NO" << std::endl;
+  }
+
+  const auto test_size = 94337023;
+  auto arr = new float *[test_size];
+  test->pull(reinterpret_cast<uintptr_t>(arr), test_size);
+  if(!test->push(reinterpret_cast<uintptr_t>(arr), test_size)) {
+    std::cerr << "Test failed" << std::endl;
+  } else {
+    std::cout << "Test succeeded!" << std::endl;
+  }
+  delete[] arr;
+  delete test;
 
   // Small experiment
   auto array = new float *[2];
