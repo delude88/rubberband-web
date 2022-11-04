@@ -1,9 +1,10 @@
 #include "emscripten/bind.h"
-#include "RealtimeRubberBand.h"
-#include "RubberBandProcessor.h"
-#include "RubberBandSource.h"
-#include "RubberBandAPI.h"
-#include "RubberBandFinal.h"
+#include "rubberband/RealtimeRubberBand.h"
+#include "rubberband/RubberBandProcessor.h"
+#include "rubberband/RubberBandSource.h"
+#include "rubberband/RubberBandAPI.h"
+#include "rubberband/RubberBandFinal.h"
+#include "test/Test.h"
 
 using namespace emscripten;
 
@@ -123,5 +124,19 @@ EMSCRIPTEN_BINDINGS(CLASS_RubberBandFinal) {
 
         .function("pull",
                   &RubberBandFinal::pull,
+                  allow_raw_pointers());
+}
+
+EMSCRIPTEN_BINDINGS(CLASS_Test) {
+    class_<Test>("RubberBandFinal")
+
+        .constructor<>()
+
+        .function("push",
+                  &Test::push,
+                  allow_raw_pointers())
+
+        .function("pull",
+                  &Test::pull,
                   allow_raw_pointers());
 }

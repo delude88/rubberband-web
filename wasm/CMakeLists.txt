@@ -23,17 +23,17 @@ target_include_directories(rubberbandofficial
 
 # Build own library containing MyClass
 add_library(rubberbandclasses
-        src/RealtimeRubberBand.cpp
-        src/RealtimeRubberBand.h
-        src/RubberBandSource.cpp
-        src/RubberBandSource.h
-        src/RubberBandProcessor.cpp
-        src/RubberBandProcessor.h
         src/PitchShiftSource.h
-        src/RubberBandAPI.cpp
-        src/RubberBandAPI.h
-        src/RubberBandFinal.cpp
-        src/RubberBandFinal.h
+        src/rubberband/RealtimeRubberBand.cpp
+        src/rubberband/RealtimeRubberBand.h
+        src/rubberband/RubberBandSource.cpp
+        src/rubberband/RubberBandSource.h
+        src/rubberband/RubberBandProcessor.cpp
+        src/rubberband/RubberBandProcessor.h
+        src/rubberband/RubberBandAPI.cpp
+        src/rubberband/RubberBandAPI.h
+        src/rubberband/RubberBandFinal.cpp
+        src/rubberband/RubberBandFinal.h
         )
 
 target_include_directories(rubberbandclasses
@@ -116,7 +116,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 add_executable(
         rubberband_test
-        src/RealtimeRubberband_test.cpp
+        src/rubberband/RealtimeRubberband_test.cpp
 )
 target_link_libraries(rubberband_test
         PUBLIC

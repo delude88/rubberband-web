@@ -30,27 +30,24 @@ class RubberBandSource implements PitchShiftSource {
       this.kernel = new this.module.RubberBandFinal(sampleRate, channelCount, sampleCount, this.timeRatio, this.pitchScale)
 
       //TODO:  Check input array itself
-      const inputBuffer = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
-      for (let c = 0; c < this.buffer.length; ++c) {
-        for (let s = 0; s < this.buffer[c].length; ++s) {
-          this.buffer[c][s] *= 1.2
-        }
-      }
-
-      this.inputBuffer = inputBuffer
+      this.inputBuffer = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
       this.outputBuffer = new HeapArray(this.module, RENDER_QUANTUM_FRAMES, channelCount)
 
       // Study all
       console.time('Study')
+      const inputArray = new Float32Array(this.module.HEAPF32.buffer, 0, RENDER_QUANTUM_FRAMES * 2)
+      const outputArray = new Float32Array(this.module.HEAPF32.buffer, RENDER_QUANTUM_FRAMES * 2 * Float32Array.BYTES_PER_ELEMENT, RENDER_QUANTUM_FRAMES)
       let counter = 0
       for (let frame = 0; frame < sampleCount; frame += RENDER_QUANTUM_FRAMES) {
         const length = Math.min(sampleCount - frame, RENDER_QUANTUM_FRAMES)
         const end = frame + length
+
         for (let c = 0; c < channelCount; c++) {
-          this.inputBuffer.getChannelArray(c).set(this.buffer[c].subarray(frame, end))
+          //inputArray.set(this.buffer[c].subarray(frame, end))
+          inputArray.set(this.buffer[c].slice(frame, end))
         }
-        //console.log(`this.kernel.push(${this.inputBuffer.getHeapAddress()}, ${length}) am now at ${frame} of ${sampleCount}`)
-        this.kernel.push(this.inputBuffer.getHeapAddress(), length)
+        console.log(`this.kernel.push(${this.inputBuffer.getHeapAddress()}, ${length}) am now at ${frame} of ${sampleCount}`)
+        this.kernel.push(inputArray.byteOffset, length)
         counter += length
       }
       console.timeEnd('Study')

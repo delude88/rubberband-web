@@ -24,7 +24,6 @@ export interface RubberBandProcessor {
   retrieve(heapAddress: number, size: number): number
 }
 
-
 export interface RubberBandFinal {
   new(sampleRate: number, channelCount: number, sampleCount: number, timeRatio: number, pitchScale: number): RubberBandFinal;
 
@@ -32,7 +31,6 @@ export interface RubberBandFinal {
 
   pull(heapAddress: number, size: number): boolean
 }
-
 
 export interface RealtimeRubberBand {
   new(sampleRate: number, channelCount: number, highQuality: boolean): RealtimeRubberBand;
@@ -46,9 +44,18 @@ export interface RealtimeRubberBand {
   available(): number;
 }
 
+export interface Test {
+  new(factor: number): Test;
+
+  push(heapAddress: number, size: number): boolean
+
+  pull(heapAddress: number, size: number): number
+}
+
 export interface RubberBandModule extends EmscriptenModule {
   RubberBandAPI: RubberBandAPI
   RealtimeRubberBand: RealtimeRubberBand
   RubberBandProcessor: RubberBandProcessor
   RubberBandFinal: RubberBandFinal
+  Test: Test
 }

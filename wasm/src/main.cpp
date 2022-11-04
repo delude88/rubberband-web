@@ -3,11 +3,11 @@
 //
 
 #include <iostream>
-#include "RubberBandProcessor.h"
-#include "RubberBandAPI.h"
-#include "RubberBandFinal.h"
 #include <chrono>
 #include <thread>
+#include "rubberband/RubberBandProcessor.h"
+#include "rubberband/RubberBandAPI.h"
+#include "rubberband/RubberBandFinal.h"
 const static auto kSampleRate = 44100;
 const static auto timeRatio = 2;
 
