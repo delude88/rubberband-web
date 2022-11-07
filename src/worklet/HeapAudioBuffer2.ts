@@ -3,7 +3,7 @@ const USE_MEMORY = false
 class HeapAudioBuffer {
   private readonly module_: EmscriptenModule
   private readonly size_: number
-  private readonly data_: Float32Array
+  private readonly data_: Uint8Array
   private readonly dataPtr_: number
   private readonly dataByteSize_: number
   private readonly channelByteSize_: number
@@ -17,10 +17,17 @@ class HeapAudioBuffer {
     this.channelByteSize_ = this.size_ * Float32Array.BYTES_PER_ELEMENT
     this.dataByteSize_ = this.channelCount_ * this.channelByteSize_
 
-    this.dataPtr_ = this.module_._malloc(this.dataByteSize_)
-    this.data_ = new Float32Array(this.module_.HEAPF32.buffer, this.dataPtr_, this.size_ * this.channelCount_)
+    if (USE_MEMORY) {
+      const maxNumPages = Math.round(this.dataByteSize_ / 65536)
+      const memory = new WebAssembly.Memory({ initial: maxNumPages, maximum: maxNumPages, shared: true })
+      this.data_ = new Uint8Array(memory.buffer, 0, this.dataByteSize_)
+      this.dataPtr_ = this.data_.byteOffset
+    } else {
+      this.dataPtr_ = this.module_._malloc(this.dataByteSize_)
+      this.data_ = new Uint8Array(this.module_.HEAPU8.buffer, this.dataPtr_, this.dataByteSize_)
+    }
 
-    console.log(`[HeapAudioBuffer] Created buffer at ${this.dataPtr_} of size ${this.data_.length} (internal: ${this.data_.byteLength}), ending at ${this.dataPtr_ + this.dataByteSize_}`)
+    console.log(`[HeapAudioBuffer] Created buffer at ${this.dataPtr_} of size ${this.dataByteSize_} (internal: ${this.data_.byteLength}), ending at ${this.dataPtr_ + this.dataByteSize_}`)
   }
 
   public get channelCount(): number {
@@ -69,7 +76,7 @@ class HeapAudioBuffer {
       throw new Error('Incoming array is detached (its byteLength = 0)')
     }
 
-    this.data_.set(array, channel * this.size_)
+    this.data_.set(new Uint8Array(array.buffer), this.channelByteSize_ * channel)
   }
 
   /**
@@ -83,12 +90,14 @@ class HeapAudioBuffer {
     if (channel > this.channelCount_) {
       throw new Error('Cannot write channel: channel is out of bounce')
     }
-    const start = channel * this.size_;
-    const end = start +  this.size_;
+    const offset = this.data_.byteOffset + channel * this.channelByteSize_
+
+    console.info(`readChannel(${channel}) => view with size ${this.size_} of an buffer of total size ${this.channelByteSize_} * ${this.channelCount_} = ${this.dataByteSize_}`)
+
     if (!array) {
-      return this.data_.subarray(start, end)
+      return new Float32Array(this.data_.buffer, offset, this.size_)
     }
-    array.set(this.data_.subarray(start, end))
+    array.set(new Float32Array(this.data_.buffer, offset, this.size_))
     return array
   }
 

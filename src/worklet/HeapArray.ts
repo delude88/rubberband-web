@@ -30,6 +30,7 @@ class HeapArray {
           startByteOffset >> BYTES_PER_UNIT,
           endByteOffset >> BYTES_PER_UNIT)
     }
+    console.log(`[HeapArray] Created buffer at ${this.dataPtr} of size ${dataByteSize}, ending at ${this.dataPtr + dataByteSize}`)
     this.ready = true
   }
 

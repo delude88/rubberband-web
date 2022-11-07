@@ -21,13 +21,13 @@ class PitchShiftMockup implements PitchShiftSource {
       const sampleCount = channels[0].length
       const channelCount = channels.length
       if (channelCount > 0) {
-        for(let channel = 0; channel < channelCount; ++channel) {
-          if(this.useArray) {
-            if(this.inputArray) {
+        for (let channel = 0; channel < channelCount; ++channel) {
+          if (this.useArray) {
+            if (this.inputArray) {
               channels[channel].set(this.inputArray.getChannelArray(channel).slice(this.counter, this.counter + sampleCount))
             }
           } else {
-            for(let sample = 0; sample < sampleCount; ++sample) {
+            for (let sample = 0; sample < sampleCount; ++sample) {
               channels[channel][sample] = this.buffer[channel][this.counter + sample]
             }
           }
@@ -114,13 +114,13 @@ class PitchShiftSourceProcessor extends AudioWorkletProcessor implements AudioWo
     createModule()
       .then((module: RubberBandModule) => {
         this.api = new RubberBandSource(module)
-        if(this.pitch !== 1) {
+        if (this.pitch !== 1) {
           this.api.setPitchScale(this.pitch)
         }
-        if(this.tempo !== 1) {
+        if (this.tempo !== 1) {
           this.api.setTimeRatio(this.tempo)
         }
-        if(this.buffer) {
+        if (this.buffer) {
           this.api.setBuffer(this.buffer)
         }
       })
@@ -150,6 +150,16 @@ class PitchShiftSourceProcessor extends AudioWorkletProcessor implements AudioWo
 
   setBuffer(buffer: Float32Array[]) {
     console.log(`[PitchShiftSourceProcessor] setBuffer(buffer: ${buffer.length} channels a ${buffer.length > 0 ? buffer[0].length : 0} samples)`)
+    // Validate buffer
+    if (buffer.length > 0) {
+      for (let c = 0; c < buffer.length; ++c) {
+        if (buffer[c].byteLength === 0) {
+          throw new Error(`[PitchShiftSourceProcessor] setBuffer: buffer[${c}].byteLength === 0`)
+        } else {
+          console.log(`[PitchShiftSourceProcessor] setBuffer: buffer[${c}].byteLength === ${buffer[c].byteLength}`)
+        }
+      }
+    }
     this.buffer = buffer
     this.api?.setBuffer(buffer)
   }
