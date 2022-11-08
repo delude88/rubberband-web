@@ -435,3 +435,4 @@ public
 build
 dist
 pnpm-lock.yaml
+!wasm/build/rubberband.js

@@ -232,12 +232,6 @@ testButton.onclick = async () => {
   arr5.set(arr1.slice(0, arr5.length))
   console.log(arr5)
 
-  WebAssembly.compileStreaming(fetch("simple.wasm"))
-    .then((m) => {
-
-    })
-  const m = new WebAssembly.Module(0)
-
   const module: EmscriptenModule = await createModule()
   console.log(module)
   const size = 29279232
