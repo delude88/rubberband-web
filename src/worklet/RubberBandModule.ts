@@ -35,13 +35,19 @@ export interface RubberBandFinal {
 export interface RealtimeRubberBand {
   new(sampleRate: number, channelCount: number, highQuality: boolean): RealtimeRubberBand;
 
-  study(heapAddress: number, size: number, final: boolean): void
+  getVersion(): number
 
-  process(heapAddress: number, size: number, final: boolean): void
+  setPitch(pitch: number): void
 
-  retrieve(heapAddress: number, size: number): number
+  setTempo(pitch: number): void
 
-  available(): number;
+  setFormantScale(scale: number): void
+
+  push(heapAddress: number, size: number): number
+
+  pull(heapAddress: number, size: number): void
+
+  getSamplesAvailable(): number;
 }
 
 export interface Test {

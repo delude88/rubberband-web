@@ -26,15 +26,15 @@ RubberBandAPI::~RubberBandAPI() {
 
 void RubberBandAPI::study(uintptr_t input_ptr, size_t input_size, bool final) {
   auto input = reinterpret_cast<const float *const *>(input_ptr);
-  //if (validate(input, input_size)) {
+  if (validate(input, input_size)) {
     stretcher_->study(input, input_size, final);
-  //}
+  }
 }
 
 void RubberBandAPI::process(uintptr_t input_ptr, size_t input_size, bool final) {
   auto input = reinterpret_cast<const float *const *>(input_ptr);
   //if (validate(input, input_size)) {
-    stretcher_->process(input, input_size, final);
+  stretcher_->process(input, input_size, final);
   //}
 }
 
@@ -56,17 +56,20 @@ void RubberBandAPI::setMaxProcessSize(size_t size) const {
 
 bool RubberBandAPI::validate(const float *const *input, size_t input_size) {
   auto channelCount = stretcher_->getChannelCount();
+  bool result = true;
   for (size_t c = 0; c < channelCount; ++c) {
-    for (size_t s = 0; s < input_size; ++s) {
-      if(!input[c]) {
-        std::cerr << "Channel " << c << " is null (wtf?!?)" << std::endl;
-        return false;
-      }
-      if (input[c][s] != input[c][s]) {
-        std::cerr << "NaN at input[" << c << "][" << s << "]" << std::endl;
-        return false;
+    if (&input[c] == nullptr) {
+      std::cerr << "Channel " << c << " is null (wtf?!?): " << input[c] << std::endl;
+      result = false;
+    } else {
+      for (size_t s = 0; s < input_size; ++s) {
+        if (input[c][s] != input[c][s]) {
+          std::cerr << "NaN at input[" << c << "][" << s << "]" << std::endl;
+          result = false;
+          break;
+        }
       }
     }
   }
-  return true;
+  return result;
 }

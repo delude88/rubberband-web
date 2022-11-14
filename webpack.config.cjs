@@ -1,8 +1,8 @@
 const path = require('path');
 
 const worklets = [
-    'src/worklet/pitch-shift-realtime-processor.ts',
-    'src/worklet/pitch-shift-source-processor.ts',
+    'src/worklet/realtime-pitch-shift-processor.ts',
+    'src/worklet/offline-pitch-shift-processor.ts',
     'src/worker/pitch-shift.worker.ts',
 ]
 

@@ -25,12 +25,12 @@ EMSCRIPTEN_BINDINGS(CLASS_RealtimeRubberBand) {
         .function("setFormantScale",
                   &RealtimeRubberBand::setFormantScale)
 
-        .function("pull",
-                  &RealtimeRubberBand::pull,
-                  allow_raw_pointers())
-
         .function("push",
                   &RealtimeRubberBand::push,
+                  allow_raw_pointers())
+
+        .function("pull",
+                  &RealtimeRubberBand::pull,
                   allow_raw_pointers())
 
         .function("getSamplesAvailable",

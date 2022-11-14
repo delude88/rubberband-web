@@ -13,6 +13,9 @@ class HeapArray {
   private channelData: Float32Array[] = []
 
   constructor(module: EmscriptenModule, length: number, channelCount: number = 1) {
+    if (length >= 1434883) {
+      throw new Error('Length grater as 1434883 is not supported')
+    }
     this.module = module
     this.channelCount = channelCount
     this.length = length

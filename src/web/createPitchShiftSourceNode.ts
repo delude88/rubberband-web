@@ -7,7 +7,7 @@ function cloneArrayBuffer(src: ArrayBuffer): ArrayBuffer  {
 }
 
 function createWorkletAsSourceNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): PitchShiftSourceNode {
-  const node = new AudioWorkletNode(context, 'pitch-shift-source-processor', options) as any
+  const node = new AudioWorkletNode(context, 'offline-pitch-shift-processor', options) as any
   node.setBuffer = (buffer: AudioBuffer) => {
     const transfer: ArrayBuffer[] = []
     for (let channel = 0; channel < buffer.numberOfChannels; channel++) {

@@ -1,7 +1,7 @@
 import {PitchShiftRealtimeNode} from "./PitchShiftRealtimeNode";
 
 function createWorkletAsRealtimeNode(context: BaseAudioContext, options?: AudioWorkletNodeOptions): PitchShiftRealtimeNode {
-    const node = new AudioWorkletNode(context, "pitch-shift-realtime-processor", options) as any
+    const node = new AudioWorkletNode(context, "realtime-pitch-shift-processor", options) as any
     node.setPitch = (pitch: number) => {
         node.port.postMessage(JSON.stringify(["pitch", pitch]));
     }

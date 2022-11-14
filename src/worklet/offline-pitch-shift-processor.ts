@@ -1,78 +1,9 @@
-import { PitchShiftSource } from './PitchShiftSource'
-import HeapArray from './HeapArray'
 import * as createModule from '../../wasm/build/rubberband.js'
 import { RubberBandModule } from './RubberBandModule'
-import RubberBandSource from './RubberBandSource'
+import { OfflineRubberBand } from './OfflineRubberBand'
 
-class PitchShiftMockup implements PitchShiftSource {
-  private readonly module: EmscriptenModule
-  private inputArray?: HeapArray
-  private useArray = true
-  private endPos: number = 0
-  private counter = 0
-  private buffer?: Float32Array[]
-
-  constructor(module: EmscriptenModule) {
-    this.module = module
-  }
-
-  pull(channels: Float32Array[]): void {
-    if (this.buffer && this.counter < this.endPos) {
-      const sampleCount = channels[0].length
-      const channelCount = channels.length
-      if (channelCount > 0) {
-        for (let channel = 0; channel < channelCount; ++channel) {
-          if (this.useArray) {
-            if (this.inputArray) {
-              channels[channel].set(this.inputArray.getChannelArray(channel).slice(this.counter, this.counter + sampleCount))
-            }
-          } else {
-            for (let sample = 0; sample < sampleCount; ++sample) {
-              channels[channel][sample] = this.buffer[channel][this.counter + sample]
-            }
-          }
-        }
-        if (this.counter === 0 || this.counter % (128 * 10) === 0) {
-          console.log(`[PitchShiftMockup] Pulled ${this.counter} samples`)
-          console.info(`buffer[0][${this.counter}] = ${this.buffer[0][this.counter]}`)
-        }
-      }
-      this.counter = this.counter + sampleCount
-    }
-  }
-
-  setBuffer(buffer: Float32Array[]): void {
-    this.buffer = buffer
-    if (buffer.length > 0) {
-      console.log(`[PitchShiftMockup] Setting buffer for ${buffer.length} channels of ${buffer[0].length} samples each`)
-      this.endPos = buffer[0].length
-    }
-    this.inputArray = new HeapArray(this.module, buffer[0].length, buffer.length)
-    for (let channel = 0; channel < buffer.length; ++channel) {
-      this.inputArray.getChannelArray(channel).set(buffer[channel])
-    }
-  }
-
-  setPitchScale(pitchScale: number): void {
-    console.log(`[PitchShiftMockup] Set pitch scale to ${pitchScale}`)
-  }
-
-  setTimeRatio(timeRatio: number): void {
-    console.log(`[PitchShiftMockup] Set time ratio to ${timeRatio}`)
-  }
-
-  reset(): void {
-    console.log(`[PitchShiftMockup] Reset`)
-    this.counter = 0
-  }
-
-  close(): void {
-    console.log(`[PitchShiftMockup] Close`)
-  }
-}
-
-class PitchShiftSourceProcessor extends AudioWorkletProcessor implements AudioWorkletProcessorImpl {
-  private api?: PitchShiftSource
+class OfflinePitchShiftProcessor extends AudioWorkletProcessor implements AudioWorkletProcessorImpl {
+  private api?: OfflineRubberBand
   private running: boolean = true
   private playing: boolean = false
   private buffer?: Float32Array[]
@@ -113,7 +44,7 @@ class PitchShiftSourceProcessor extends AudioWorkletProcessor implements AudioWo
     }
     createModule()
       .then((module: RubberBandModule) => {
-        this.api = new RubberBandSource(module)
+        this.api = new OfflineRubberBand(module)
         if (this.pitch !== 1) {
           this.api.setPitchScale(this.pitch)
         }
@@ -172,11 +103,11 @@ class PitchShiftSourceProcessor extends AudioWorkletProcessor implements AudioWo
   }
 
   process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
-    if (this.api && this.playing) {
+    if (this.api && this.playing && outputs) {
       this.api.pull(outputs[0])
     }
     return this.running
   }
 }
 
-registerProcessor('pitch-shift-source-processor', PitchShiftSourceProcessor)
+registerProcessor('offline-pitch-shift-processor', OfflinePitchShiftProcessor)
