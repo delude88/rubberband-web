@@ -3,7 +3,7 @@ import {
   createPitchShiftWorker,
   PitchShiftSourceNode
 } from './../..'
-import * as createModule from "../../wasm/build/rubberband.js"
+import * as createModule from '../../wasm/build/rubberband.js'
 
 const audioContext = new AudioContext()
 const worker = createPitchShiftWorker('../../public/pitch-shift.worker.js')
@@ -45,7 +45,7 @@ class Core {
         playNode.buffer = this.playBuffer
         this.playNode = playNode
       } else {
-        const playNode = await createPitchShiftSourceNode(audioContext, '../../public/pitch-shift-source-processor.js')
+        const playNode = await createPitchShiftSourceNode(audioContext, '../../public/offline-pitch-shift-processor.js')
         playNode.setBuffer(this.playBuffer)
         this.playNode = playNode
       }
@@ -95,7 +95,7 @@ class Core {
     if (this.source) {
       if (this.useWorker) {
         await worker.process(this.source, this.tempo)
-          .then(audioBuffer => this.setPlayBuffer(audioBuffer))
+          .then((audioBuffer) => this.setPlayBuffer(audioBuffer))
       } else {
         await this.setPlayBuffer(this.source)
       }
@@ -175,49 +175,62 @@ fileChooser.onchange = () => {
 
 playButton.disabled = true
 
+const runTest = (module: EmscriptenModule, size: number) => {
+  const uint8ByteLength = size * Float32Array.BYTES_PER_ELEMENT;
+  console.log(`_malloc(${size * Float32Array.BYTES_PER_ELEMENT})`)
+  const ptr = module._malloc(size * Float32Array.BYTES_PER_ELEMENT)
+  const bla1 = new Uint8Array(module.HEAPU8.buffer, ptr, uint8ByteLength)
+  const bla2 = new Uint8Array(module.HEAPU8.buffer, ptr, uint8ByteLength)
+  const bla3 = new Float32Array(module.HEAPF32.buffer, ptr, size)
+  bla3[0] = 8.3
+  bla3[1] = 1.4
+  console.assert(bla1.byteLength === uint8ByteLength, `byteLength of bla1 = ${bla1.byteLength} === ${uint8ByteLength}`)
+  console.log(`BEFORE 2nd _malloc(${size * Float32Array.BYTES_PER_ELEMENT})`, 'bla1.byteLength:', bla1.byteLength, 'bla2.byteLength:', bla2.byteLength, 'bla3.byteLength:', bla3.byteLength, 'bla3[0]:', bla3[0], 'bla3[1]:', bla3[1])
+
+  // 2nd _malloc
+  const ptr2 = module._malloc(size * Float32Array.BYTES_PER_ELEMENT)
+  const bla4 = new Uint8Array(module.HEAPU8.buffer, ptr2, size * Float32Array.BYTES_PER_ELEMENT)
+  const bla5 = new Float32Array(module.HEAPF32.buffer, ptr2, size)
+  console.assert(bla1.byteLength === uint8ByteLength, `byteLength of bla1 = ${bla1.byteLength} === ${uint8ByteLength}`)
+  console.log(`AFTER 2nd _malloc(${size * Float32Array.BYTES_PER_ELEMENT})`, 'bla1.byteLength:', bla1.byteLength, 'bla2.byteLength:', bla2.byteLength, 'bla3.byteLength:', bla3.byteLength, 'bla4.byteLength:', bla4.byteLength, 'bla5.byteLength:', bla5.byteLength, 'bla3[0]:', bla3[0], 'bla3[1]:', bla3[1])
+
+  module._free(ptr)
+  module._free(ptr2)
+}
+
 const testButton = document.getElementById('test') as HTMLButtonElement
 testButton.onclick = async () => {
-  const module = await createModule()
+  const arr1 = new Float32Array([1, 2, 3, 4, 5, 6])
+  const arr2 = new Float32Array(arr1.length)
+  const arr3 = new Float32Array(arr1.buffer, 0)
+  arr2.set(arr1)
+  arr1[0] = 100
+  arr1[1] = 100
+  console.info('Changes to arr1 will affect arr3 but not arr1:')
+  console.log(arr1)
+  console.log(arr2)
+  console.log(arr3)
+
+  const arr4 = new Float32Array(10)
+  arr4.set(arr1)
+  console.log(arr4)
+  const arr5 = new Float32Array(4)
+  arr5.set(arr1.slice(0, arr5.length))
+  console.log(arr5)
+
+  // See https://playcode.io/1005840
+  console.info('Loading wasm module')
+  const module: EmscriptenModule = await createModule()
   console.log(module)
   const size = 29279232
-  const channelCount = 2
-
-  const firstPtr = module._malloc(channelCount * size * Float32Array.BYTES_PER_ELEMENT);
-  const firstTransport = new Uint8Array(module.HEAPU8.buffer, firstPtr, channelCount * size * Float32Array.BYTES_PER_ELEMENT)
-  console.info(firstTransport.byteLength)
-
-  const secondPtr = module._malloc(channelCount * size * Float32Array.BYTES_PER_ELEMENT);
-  const secondTransport = new Float32Array(module.HEAPF32.buffer, secondPtr, channelCount * size)
-  console.info(secondTransport.byteLength)
-
-  console.info(firstTransport.byteLength, secondTransport.byteLength)
-
-  console.info("Creating input")
-  const input: Float32Array[] = []
-  for(let c = 0; c < channelCount; ++c) {
-    const inputChannel = new Float32Array(size)
-    for(let i = 0; i < size; ++i) {
-      inputChannel[i] = i + ((c + 1) * 0.1)
-    }
-    input.push(inputChannel)
-  }
-
-  console.info("Assign input to first module")
-
-
-
-
-  const outputChannel1 = new Uint8Array(module.HEAPU8.buffer, firstPtr, size * Float32Array.BYTES_PER_ELEMENT)
-  const outputChannel2 = new Uint8Array(module.HEAPU8.buffer, firstPtr, size * Float32Array.BYTES_PER_ELEMENT)
-  const outputChannel4 = new Float32Array(module.HEAPF32.buffer, secondPtr, size)
-
-  console.info("Assign input channels to first buffer")
-  outputChannel1.set(input)
-  outputChannel2.set(inputChannel2)
-  outputChannel3.set(inputChannel1)
-  outputChannel4.set(inputChannel2)
-
-  module._free(firstPtr)
-  module._free(secondPtr)
+  console.info('RUNNING TEST WITH 120 ENTRIES')
+  runTest(module, 120)
+  // Nearest for myself: 1434883 ... 1434884 is failing
+  //const size2 = Math.round(module.HEAPF32.byteLength / 11.7)
+  const size2 = Math.round(1024 * 1401 + 256 + 3) // 1434880
+  console.info(`RUNNING TEST WITH ${size2} ENTRIES`)
+  runTest(module, size2)
+  console.info(`RUNNING TEST WITH ${size} ENTRIES`)
+  runTest(module, size)
 
 }
